@@ -11,7 +11,6 @@ export default function Index() {
     const run = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const shop = urlParams.get("shop");
-      console.log(shop, 'shop');
 
       if (!shop) {
         setIsCheckingAuth(false);
@@ -20,7 +19,6 @@ export default function Index() {
 
       fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
         .then((res) => {
-          console.log("Auth API response status:", res.status);
           return res.json();
         })
         .then((data) => {
@@ -60,7 +58,9 @@ export default function Index() {
           minHeight: "100vh",
           padding: 32,
           display: "flex",
-          alignItems: "center",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
         }}
       >
         <div>
