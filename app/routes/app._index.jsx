@@ -41,9 +41,9 @@ export default function Index() {
 
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
-    if (isAuthorized) {
+    // if (isAuthorized) {
       navigate("/admin");
-    }
+    // }
   }, [isAuthorized, navigate]);
 
   if (isCheckingAuth) {
