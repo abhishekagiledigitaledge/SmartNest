@@ -264,123 +264,135 @@ export default function Admin() {
 
   const handleSync = () => {
     console.log("Sync button clicked");
-    confirmAction(
-      "Are you sure? This will create collections in your Shopify store.",
-      () => {
-        console.log("Sync confirmed, starting sync...");
-        setSyncHint(true);
-        setSyncStatus({ show: false, message: "", type: "" });
-        setSyncBtnState({ disabled: true, label: "Syncing...", loading: true });
-        setSyncProgress({ show: true, value: 0 });
 
-        // Start sync (fire and forget)
-        fetch(`${backendUrl}/sync-collections?shop=${shop}`)
-        // fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
-          .then((response) => {
-            console.log("Sync request initiated, status:", response.status);
-          })
-          .catch((err) => {
-            console.error("Sync request failed:", err);
-            setSyncStatus({
-              show: true,
-              message: "Failed to start sync. Please try again.",
-              type: "danger",
-            });
-            setSyncBtnState({
-              disabled: false,
-              label: "Sync Now",
-              loading: false,
-            });
-            setSyncHint(false);
-            setSyncProgress({ show: false, value: 0 });
-          });
+    // ✅ INP FIX: instant visual feedback (first paint)
+    setSyncBtnState((prev) => ({
+      ...prev,
+      disabled: true,
+      loading: true,
+      label: "Preparing...",
+    }));
 
-        // Listen for real-time progress
-        console.log(
-          "Connecting to EventSource:",
-          // `${backendUrl}/sync-stream?shop=${shop}`,
-          `${backendUrl}/sync-stream?shop=${shop}`,
-        );
-        const evtSource = new EventSource(
-          `${backendUrl}/sync-stream?shop=${shop}`,
-        );
-        evtSourceRef.current = evtSource;
+    // ✅ INP FIX: defer heavy logic to next frame
+    requestAnimationFrame(() => {
+      confirmAction(
+        "Are you sure? This will create collections in your Shopify store.",
+        () => {
+          console.log("Sync confirmed, starting sync...");
+          setSyncHint(true);
+          setSyncStatus({ show: false, message: "", type: "" });
+          setSyncBtnState({ disabled: true, label: "Syncing...", loading: true });
+          setSyncProgress({ show: true, value: 0 });
 
-        evtSource.onopen = () => {
-          console.log("EventSource connection opened");
-        };
-
-        evtSource.onmessage = (e) => {
-          try {
-            console.log("EventSource message received:", e.data);
-            const data = JSON.parse(e.data);
-            const progress =
-              typeof data.progress === "number"
-                ? Math.min(100, Math.max(0, data.progress))
-                : 0;
-            console.log("Progress update:", progress + "%");
-
-            setSyncProgress({ show: true, value: progress });
-
-            if (progress >= 100) {
-              console.log("Sync completed, closing EventSource");
-              evtSource.close();
-              evtSourceRef.current = null;
+          // Start sync (fire and forget)
+          fetch(`${backendUrl}/sync-collections?shop=${shop}`)
+            // fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
+            .then((response) => {
+              console.log("Sync request initiated, status:", response.status);
+            })
+            .catch((err) => {
+              console.error("Sync request failed:", err);
+              setSyncStatus({
+                show: true,
+                message: "Failed to start sync. Please try again.",
+                type: "danger",
+              });
               setSyncBtnState({
                 disabled: false,
                 label: "Sync Now",
                 loading: false,
               });
-              setSyncStatus({
-                show: true,
-                message: "Sync completed successfully. Refreshing data...",
-                type: "success",
-              });
               setSyncHint(false);
+              setSyncProgress({ show: false, value: 0 });
+            });
 
-              // Keep progress bar at 100% for a moment, then refresh data
-              setTimeout(async () => {
-                console.log("Refreshing data after sync...");
-                await refreshData();
-                setSyncProgress({ show: false, value: 0 });
+          // Listen for real-time progress
+          console.log(
+            "Connecting to EventSource:",
+            // `${backendUrl}/sync-stream?shop=${shop}`,
+            `${backendUrl}/sync-stream?shop=${shop}`,
+          );
+          const evtSource = new EventSource(
+            `${backendUrl}/sync-stream?shop=${shop}`,
+          );
+          evtSourceRef.current = evtSource;
+
+          evtSource.onopen = () => {
+            console.log("EventSource connection opened");
+          };
+
+          evtSource.onmessage = (e) => {
+            try {
+              console.log("EventSource message received:", e.data);
+              const data = JSON.parse(e.data);
+              const progress =
+                typeof data.progress === "number"
+                  ? Math.min(100, Math.max(0, data.progress))
+                  : 0;
+              console.log("Progress update:", progress + "%");
+
+              setSyncProgress({ show: true, value: progress });
+
+              if (progress >= 100) {
+                console.log("Sync completed, closing EventSource");
+                evtSource.close();
+                evtSourceRef.current = null;
+                setSyncBtnState({
+                  disabled: false,
+                  label: "Sync Now",
+                  loading: false,
+                });
                 setSyncStatus({
                   show: true,
-                  message:
-                    "Sync completed successfully! Data has been updated.",
+                  message: "Sync completed successfully. Refreshing data...",
                   type: "success",
                 });
-              }, 1500);
-            }
-          } catch (err) {
-            console.error("Error parsing progress:", err, "Raw data:", e.data);
-          }
-        };
+                setSyncHint(false);
 
-        evtSource.onerror = (err) => {
-          console.error("EventSource error:", err);
-          // Don't close immediately on first error - might be temporary
-          if (evtSource.readyState === EventSource.CLOSED) {
-            evtSource.close();
-            evtSourceRef.current = null;
-            setSyncStatus({
-              show: true,
-              message: "Sync connection lost. Please check if sync completed.",
-              type: "warning",
-            });
-            setSyncBtnState({
-              disabled: false,
-              label: "Sync Now",
-              loading: false,
-            });
-            setSyncHint(false);
-            // Try to refresh data anyway in case sync completed
-            setTimeout(async () => {
-              await refreshData();
-            }, 2000);
-          }
-        };
-      },
-    );
+                // Keep progress bar at 100% for a moment, then refresh data
+                setTimeout(async () => {
+                  console.log("Refreshing data after sync...");
+                  await refreshData();
+                  setSyncProgress({ show: false, value: 0 });
+                  setSyncStatus({
+                    show: true,
+                    message:
+                      "Sync completed successfully! Data has been updated.",
+                    type: "success",
+                  });
+                }, 1500);
+              }
+            } catch (err) {
+              console.error("Error parsing progress:", err, "Raw data:", e.data);
+            }
+          };
+
+          evtSource.onerror = (err) => {
+            console.error("EventSource error:", err);
+            // Don't close immediately on first error - might be temporary
+            if (evtSource.readyState === EventSource.CLOSED) {
+              evtSource.close();
+              evtSourceRef.current = null;
+              setSyncStatus({
+                show: true,
+                message: "Sync connection lost. Please check if sync completed.",
+                type: "warning",
+              });
+              setSyncBtnState({
+                disabled: false,
+                label: "Sync Now",
+                loading: false,
+              });
+              setSyncHint(false);
+              // Try to refresh data anyway in case sync completed
+              setTimeout(async () => {
+                await refreshData();
+              }, 2000);
+            }
+          };
+        },
+      );
+    });
   };
 
   const handleReset = () => {
