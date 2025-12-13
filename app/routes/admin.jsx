@@ -3,21 +3,12 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import adminStyles from "../styles/admin.css?url";
-import { Icon } from "@shopify/polaris";
-import {
-  FolderIcon,
-  FolderAddIcon,
-  ResetIcon,
-  RefreshIcon,
-  ExternalIcon,
-  InfoIcon,
-} from "@shopify/polaris-icons";
 
 export const links = () => [
-  // {
-  //   rel: "stylesheet",
-  //   href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
-  // },
+  {
+    rel: "stylesheet",
+    href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+  },
   {
     rel: "stylesheet",
     href: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
@@ -438,7 +429,7 @@ export default function Admin() {
       <div className="admin-header">
         <div className="header-content">
           <h1 className="page-title">
-            <Icon source={FolderIcon} tone="base" />
+            <i className="fas fa-sitemap me-2"></i>
             Parent & Child Collection Relations
           </h1>
           <p className="page-subtitle">
@@ -453,7 +444,7 @@ export default function Admin() {
               className="btn btn-outline-dark"
               id="plan-btn"
             >
-              <Icon source={FolderAddIcon} />
+              <i className="fas fa-crown me-2"></i>
               <span id="plan-label">Explore Plans</span>
             </a>
           )}
@@ -464,7 +455,7 @@ export default function Admin() {
             onClick={handleReset}
             disabled={resetBtnState.disabled}
           >
-            <Icon source={ResetIcon} />
+            <i className="fas fa-trash-alt me-2"></i>
             <span id="reset-label">{resetBtnState.label}</span>
             {resetBtnState.loading && (
               <span
@@ -482,7 +473,7 @@ export default function Admin() {
             onClick={handleSync}
             disabled={syncBtnState.disabled}
           >
-            <Icon source={RefreshIcon} />
+            <i className="fas fa-sync-alt me-2"></i>
             <span id="sync-label">{syncBtnState.label}</span>
             {syncBtnState.loading && (
               <span
@@ -546,7 +537,7 @@ export default function Admin() {
 
       {!relations?.length && !isRefreshing && (
         <div className="empty-state">
-          <Icon source={InfoIcon} tone="subdued" />
+          <i className="fas fa-inbox fa-3x mb-3 text-muted"></i>
           <h3>No Collections Found</h3>
           <p className="text-muted">
             No parent-child collections found. Click "Sync Now" to create
@@ -574,7 +565,7 @@ export default function Admin() {
             <div key={rel.parent?.id || index} className="collection-card">
               <div className="card-header">
                 <h4 className="card-title">
-                  <Icon source={FolderIcon} tone="success" />
+                  <i className="fas fa-folder-open me-2 text-primary"></i>
                   <strong>{rel.parent.title || "Untitled Collection"}</strong>
                 </h4>
                 <a
@@ -584,7 +575,7 @@ export default function Admin() {
                   rel="noreferrer"
                   title="Edit collection"
                 >
-                  <Icon source={ExternalIcon} />
+                  <i className="fas fa-external-link-alt"></i>
                 </a>
               </div>
 
@@ -602,7 +593,7 @@ export default function Admin() {
                         <div className="child-content">
                           <div className="child-header">
                             <h5 className="child-title">
-                              <Icon source={FolderIcon} />
+                              <i className="fas fa-folder me-2"></i>
                               {child.title || "Untitled Child"}
                             </h5>
                             <a
