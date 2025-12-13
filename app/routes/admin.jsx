@@ -79,12 +79,15 @@ export default function Admin() {
   // Function to refresh data from API
   const refreshData = async () => {
     setIsRefreshing(true);
+    console.log('sub-collection-support.myshopify.com','sub-collection-support.myshopify.com');
     try {
       console.log(
         "Fetching relations from:",
-        `${backendUrl}/api/relations?shop=${shop}`,
+        // `${backendUrl}/api/relations?shop=${shop}`,
+        `${backendUrl}/api/relations?shop=sub-collection-support.myshopify.com`,
       );
-      const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
+      // const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
+      const res = await fetch(`${backendUrl}/api/relations?shop=sub-collection-support.myshopify.com`);
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -270,7 +273,8 @@ export default function Admin() {
         setSyncProgress({ show: true, value: 0 });
 
         // Start sync (fire and forget)
-        fetch(`${backendUrl}/sync-collections?shop=${shop}`)
+        // fetch(`${backendUrl}/sync-collections?shop=${shop}`)
+        fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
           .then((response) => {
             console.log("Sync request initiated, status:", response.status);
           })
@@ -293,10 +297,11 @@ export default function Admin() {
         // Listen for real-time progress
         console.log(
           "Connecting to EventSource:",
-          `${backendUrl}/sync-stream?shop=${shop}`,
+          // `${backendUrl}/sync-stream?shop=${shop}`,
+          `${backendUrl}/sync-stream?shop=sub-collection-support.myshopify.com`,
         );
         const evtSource = new EventSource(
-          `${backendUrl}/sync-stream?shop=${shop}`,
+          `${backendUrl}/sync-stream?shop=sub-collection-support.myshopify.com`,
         );
         evtSourceRef.current = evtSource;
 
@@ -389,7 +394,8 @@ export default function Admin() {
           loading: true,
         });
 
-        fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
+        // fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
+        fetch(`${backendUrl}/cleanup-collections?shop=sub-collection-support.myshopify.com`)
           .then((response) => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
@@ -428,11 +434,13 @@ export default function Admin() {
       return;
     }
 
-    fetch(`https://subcollection.allgovjobs.com/api/check-auth?shop=${shop}`)
+    // fetch(`https://subcollection.allgovjobs.com/api/check-auth?shop=${shop}`)
+    fetch(`https://subcollection.allgovjobs.com/api/check-auth?shop=sub-collection-support.myshopify.com`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.authorized) {
-          const installUrl = `https://subcollection.allgovjobs.com/shopify?shop=${shop}`;
+          // const installUrl = `https://subcollection.allgovjobs.com/shopify?shop=${shop}`;
+          const installUrl = `https://subcollection.allgovjobs.com/shopify?shop=sub-collection-support.myshopify.com`;
           if (window.top !== window.self) {
             window.top.location.href = installUrl;
           } else {
