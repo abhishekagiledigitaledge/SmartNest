@@ -93,7 +93,8 @@ export default function Admin() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      const data = await res.json();
+      const response = await res.json();
+      const data = response.data;
       console.log("API Response:", data);
       console.log("Relations data:", data.relations);
       console.log("Relations count:", data.relations?.length || 0);
