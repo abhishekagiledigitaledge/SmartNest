@@ -10,6 +10,11 @@ body {
     max-width: 1400px;
     margin: 0 auto;
   }
+  .admin-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
   .admin-header {
     background: white;
