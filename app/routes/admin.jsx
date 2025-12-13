@@ -26,7 +26,7 @@ export const meta = () => {
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  const shop = "sub-collection-testing-2.myshopify.com";
+  const shop = "sub-collection-support.myshopify.com";
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
