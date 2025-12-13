@@ -397,43 +397,54 @@ export default function Admin() {
 
   const handleReset = () => {
     console.log("Reset button clicked");
-    confirmAction(
-      "Are you sure? This will delete all parent-child collection relationships.",
-      () => {
-        console.log("Reset confirmed, starting reset...");
-        setResetBtnState({
-          disabled: true,
-          label: "Resetting...",
-          loading: true,
-        });
+    // ✅ INP FIX: instant visual feedback
+    setResetBtnState((prev) => ({
+      ...prev,
+      disabled: true,
+      loading: true,
+      label: "Preparing...",
+    }));
 
-        // fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
-        fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            setResetBtnState({
-              disabled: false,
-              label: "Done!",
-              loading: false,
-            });
-            // Refresh data after reset
-            setTimeout(async () => {
-              await refreshData();
-            }, 500);
-          })
-          .catch((err) => {
-            console.error("Reset failed:", err);
-            setResetBtnState({
-              disabled: false,
-              label: "Reset",
-              loading: false,
-            });
-            alert("Reset failed. Please try again.");
+    // ✅ INP FIX: defer heavy logic to next frame
+    requestAnimationFrame(() => {
+      confirmAction(
+        "Are you sure? This will delete all parent-child collection relationships.",
+        () => {
+          console.log("Reset confirmed, starting reset...");
+          setResetBtnState({
+            disabled: true,
+            label: "Resetting...",
+            loading: true,
           });
-      },
-    );
+
+          // fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
+          fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              setResetBtnState({
+                disabled: false,
+                label: "Done!",
+                loading: false,
+              });
+              // Refresh data after reset
+              setTimeout(async () => {
+                await refreshData();
+              }, 500);
+            })
+            .catch((err) => {
+              console.error("Reset failed:", err);
+              setResetBtnState({
+                disabled: false,
+                label: "Reset",
+                loading: false,
+              });
+              alert("Reset failed. Please try again.");
+            });
+        },
+      );
+    });
   };
 
   return (
