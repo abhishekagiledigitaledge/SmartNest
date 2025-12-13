@@ -29,7 +29,7 @@ export async function loader({ request }) {
   const shop = "sub-collection-testing-2.myshopify.com";
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
-  const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
+  const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
   const { relations, currentPlan } = await res.json();
 
   return json({
@@ -84,10 +84,10 @@ export default function Admin() {
       console.log(
         "Fetching relations from:",
         // `${backendUrl}/api/relations?shop=${shop}`,
-        `${backendUrl}/api/relations?shop=sub-collection-support.myshopify.com`,
+        `${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`,
       );
       // const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
-      const res = await fetch(`${backendUrl}/api/relations?shop=sub-collection-support.myshopify.com`);
+      const res = await fetch(`${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`);
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
