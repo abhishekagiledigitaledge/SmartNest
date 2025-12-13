@@ -3,12 +3,21 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import adminStyles from "../styles/admin.css?url";
+import { Icon } from "@shopify/polaris";
+import {
+  FolderIcon,
+  FolderAddIcon,
+  ResetIcon,
+  RefreshIcon,
+  ExternalIcon,
+  InfoIcon,
+} from "@shopify/polaris-icons";
 
 export const links = () => [
-  {
-    rel: "stylesheet",
-    href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
-  },
+  // {
+  //   rel: "stylesheet",
+  //   href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+  // },
   {
     rel: "stylesheet",
     href: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
@@ -84,12 +93,11 @@ export default function Admin() {
     try {
       console.log(
         "Fetching relations from:",
-        // `${backendUrl}/api/relations?shop=${shop}`,
-        `${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`,
+        `${backendUrl}/admin-view?shop=${shop}`,
+        // `${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`,
       );
       // const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
-      const res = await fetch(`${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`);
-
+      const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -275,8 +283,8 @@ export default function Admin() {
         setSyncProgress({ show: true, value: 0 });
 
         // Start sync (fire and forget)
-        // fetch(`${backendUrl}/sync-collections?shop=${shop}`)
-        fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
+        fetch(`${backendUrl}/sync-collections?shop=${shop}`)
+        // fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
           .then((response) => {
             console.log("Sync request initiated, status:", response.status);
           })
@@ -300,10 +308,10 @@ export default function Admin() {
         console.log(
           "Connecting to EventSource:",
           // `${backendUrl}/sync-stream?shop=${shop}`,
-          `${backendUrl}/sync-stream?shop=sub-collection-support.myshopify.com`,
+          `${backendUrl}/sync-stream?shop=${shop}`,
         );
         const evtSource = new EventSource(
-          `${backendUrl}/sync-stream?shop=sub-collection-support.myshopify.com`,
+          `${backendUrl}/sync-stream?shop=${shop}`,
         );
         evtSourceRef.current = evtSource;
 
@@ -397,7 +405,7 @@ export default function Admin() {
         });
 
         // fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
-        fetch(`${backendUrl}/cleanup-collections?shop=sub-collection-support.myshopify.com`)
+        fetch(`${backendUrl}/cleanup-collections?shop=${shop}`)
           .then((response) => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
@@ -427,277 +435,265 @@ export default function Admin() {
 
   return (
     <div className="admin-container">
-      <div className="admin-layout">
-        <div className="admin-header" style={{ minHeight: 120 }}>
-          <div className="header-content">
-            <h1 className="page-title">
-              <i className="fas fa-sitemap me-2"></i>
-              Parent & Child Collection Relations
-            </h1>
-            <p className="page-subtitle">
-              Manage your collection hierarchy and relationships
-            </p>
-          </div>
+      <div className="admin-header">
+        <div className="header-content">
+          <h1 className="page-title">
+            <Icon source={FolderIcon} tone="base" />
+            Parent & Child Collection Relations
+          </h1>
+          <p className="page-subtitle">
+            Manage your collection hierarchy and relationships
+          </p>
+        </div>
 
-          <div className="header-actions">
-            {currentPlan?.name === "Basic" && (
-              <a
-                href={`${appUrl}/plans?shop=${shop}`}
-                className="btn btn-outline-dark"
-                id="plan-btn"
-              >
-                <i className="fas fa-crown me-2"></i>
-                <span id="plan-label">Explore Plans</span>
-              </a>
+        <div className="header-actions">
+          {currentPlan?.name === "Basic" && (
+            <a
+              href={`${appUrl}/plans?shop=${shop}`}
+              className="btn btn-outline-dark"
+              id="plan-btn"
+            >
+              <Icon source={FolderAddIcon} />
+              <span id="plan-label">Explore Plans</span>
+            </a>
+          )}
+
+          <button
+            id="reset-btn"
+            className="btn btn-outline-danger"
+            onClick={handleReset}
+            disabled={resetBtnState.disabled}
+          >
+            <Icon source={ResetIcon} />
+            <span id="reset-label">{resetBtnState.label}</span>
+            {resetBtnState.loading && (
+              <span
+                id="reset-spinner"
+                className="spinner-border spinner-border-sm ms-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
             )}
+          </button>
 
-            <button
-              id="reset-btn"
-              className="btn btn-outline-danger"
-              onClick={handleReset}
-              disabled={resetBtnState.disabled}
-            >
-              <i className="fas fa-trash-alt me-2"></i>
-              <span id="reset-label">{resetBtnState.label}</span>
-              {resetBtnState.loading && (
-                <span
-                  id="reset-spinner"
-                  className="spinner-border spinner-border-sm ms-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              )}
-            </button>
+          <button
+            id="sync-btn"
+            className="btn btn-primary"
+            onClick={handleSync}
+            disabled={syncBtnState.disabled}
+          >
+            <Icon source={RefreshIcon} />
+            <span id="sync-label">{syncBtnState.label}</span>
+            {syncBtnState.loading && (
+              <span
+                id="sync-spinner"
+                className="spinner-border spinner-border-sm ms-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            )}
+          </button>
+        </div>
+      </div>
 
-            <button
-              id="sync-btn"
-              className="btn btn-primary"
-              onClick={handleSync}
-              disabled={syncBtnState.disabled}
+      {syncHint && (
+        <div id="sync-hint" className="text-muted mb-2">
+          ⏳ This may take a few minutes. You can safely close this window or
+          continue working — the sync will continue in the background.
+        </div>
+      )}
+
+      {/* Progress bar */}
+      {syncProgress.show && (
+        <div className="sync-progress-wrapper">
+          <div className="progress mb-3" id="sync-progress-container">
+            <div
+              id="sync-progress-bar"
+              className="progress-bar progress-bar-striped progress-bar-animated"
+              role="progressbar"
+              style={{
+                width: `${syncProgress.value}%`,
+                minWidth: syncProgress.value > 0 ? "2em" : "0",
+              }}
+              aria-valuenow={syncProgress.value}
+              aria-valuemin="0"
+              aria-valuemax="100"
             >
-              <i className="fas fa-sync-alt me-2"></i>
-              <span id="sync-label">{syncBtnState.label}</span>
-              {syncBtnState.loading && (
-                <span
-                  id="sync-spinner"
-                  className="spinner-border spinner-border-sm ms-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              )}
-            </button>
+              {Math.round(syncProgress.value)}%
+            </div>
+          </div>
+          <div className="progress-text">
+            <i className="fas fa-sync-alt fa-spin me-2"></i>
+            Syncing collections... {Math.round(syncProgress.value)}%
           </div>
         </div>
+      )}
 
-        <div style={{ minHeight: 40 }}>
-          {syncHint && (
-            <div id="sync-hint" className="text-muted mb-2">
-              ⏳ This may take a few minutes. You can safely close this window or
-              continue working — the sync will continue in the background.
-            </div>
-          )}
+      {syncStatus.show && (
+        <div id="sync-status" className={`alert alert-${syncStatus.type}`}>
+          {syncStatus.message}
         </div>
+      )}
 
-        {/* Progress bar */}
-        <div style={{ minHeight: 90 }}>
-          {syncProgress.show && (
-            <div className="sync-progress-wrapper">
-              <div className="progress mb-3" id="sync-progress-container">
-                <div
-                  id="sync-progress-bar"
-                  className="progress-bar progress-bar-striped progress-bar-animated"
-                  role="progressbar"
-                  style={{
-                    width: `${syncProgress.value}%`,
-                    minWidth: syncProgress.value > 0 ? "2em" : "0",
-                  }}
-                  aria-valuenow={syncProgress.value}
-                  aria-valuemin="0"
-                  aria-valuemax="100"
+      {isRefreshing && (
+        <div className="refresh-indicator">
+          <div className="spinner-border spinner-border-sm me-2" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span>Refreshing data...</span>
+        </div>
+      )}
+
+      {!relations?.length && !isRefreshing && (
+        <div className="empty-state">
+          <Icon source={InfoIcon} tone="subdued" />
+          <h3>No Collections Found</h3>
+          <p className="text-muted">
+            No parent-child collections found. Click "Sync Now" to create
+            collections.
+          </p>
+        </div>
+      )}
+
+      <div className="collections-grid">
+        {relations?.map((rel, index) => {
+          // Log each relation for debugging
+          if (index === 0) {
+            console.log("Rendering relation:", rel);
+            console.log("Parent:", rel.parent);
+            console.log("Children:", rel.children);
+          }
+
+          // Ensure we have valid parent and children
+          if (!rel || !rel.parent) {
+            console.warn("Invalid relation structure:", rel);
+            return null;
+          }
+
+          return (
+            <div key={rel.parent?.id || index} className="collection-card">
+              <div className="card-header">
+                <h4 className="card-title">
+                  <Icon source={FolderIcon} tone="success" />
+                  <strong>{rel.parent.title || "Untitled Collection"}</strong>
+                </h4>
+                <a
+                  href={`https://${shop}/admin/collections/${rel.parent.id}`}
+                  className="edit-link"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Edit collection"
                 >
-                  {Math.round(syncProgress.value)}%
-                </div>
+                  <Icon source={ExternalIcon} />
+                </a>
               </div>
-              <div className="progress-text">
-                <i className="fas fa-sync-alt fa-spin me-2"></i>
-                Syncing collections... {Math.round(syncProgress.value)}%
-              </div>
-            </div>
-          )}
-        </div>
 
-        <div style={{ minHeight: 64 }}>
-          {syncStatus.show && (
-            <div id="sync-status" className={`alert alert-${syncStatus.type}`}>
-              {syncStatus.message}
-            </div>
-          )}
-        </div>
-
-        <div style={{ minHeight: 32 }}>
-          {isRefreshing && (
-            <div className="refresh-indicator">
-              <div className="spinner-border spinner-border-sm me-2" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <span>Refreshing data...</span>
-            </div>
-          )}
-        </div>
-
-        <div style={{ minHeight: 420 }}>
-          {!relations?.length && !isRefreshing && (
-            <div className="empty-state">
-              <i className="fas fa-inbox fa-3x mb-3 text-muted"></i>
-              <h3>No Collections Found</h3>
-              <p className="text-muted">
-                No parent-child collections found. Click "Sync Now" to create
-                collections.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="collections-grid">
-          {relations?.map((rel, index) => {
-            // Log each relation for debugging
-            if (index === 0) {
-              console.log("Rendering relation:", rel);
-              console.log("Parent:", rel.parent);
-              console.log("Children:", rel.children);
-            }
-
-            // Ensure we have valid parent and children
-            if (!rel || !rel.parent) {
-              console.warn("Invalid relation structure:", rel);
-              return null;
-            }
-
-            return (
-              <div key={rel.parent?.id || index} className="collection-card">
-                <div className="card-header">
-                  <h4 className="card-title">
-                    <i className="fas fa-folder-open me-2 text-primary"></i>
-                    <strong>{rel.parent.title || "Untitled Collection"}</strong>
-                  </h4>
-                  <a
-                    href={`https://${shop}/admin/collections/${rel.parent.id}`}
-                    className="edit-link"
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Edit collection"
-                  >
-                    <i className="fas fa-external-link-alt"></i>
-                  </a>
-                </div>
-
-                {rel.children &&
-                  Array.isArray(rel.children) &&
-                  rel.children.length > 0 ? (
-                  <div className="children-list">
-                    {rel.children.map((child, childIndex) => {
-                      if (!child || !child.id) {
-                        console.warn("Invalid child structure:", child);
-                        return null;
-                      }
-                      return (
-                        <div key={child.id || childIndex} className="child-item">
-                          <div className="child-content">
-                            <div className="child-header">
-                              <h5 className="child-title">
-                                <i className="fas fa-folder me-2"></i>
-                                {child.title || "Untitled Child"}
-                              </h5>
-                              <a
-                                href={`https://${shop}/admin/collections/${child.id}`}
-                                className="child-edit-link"
-                                target="_blank"
-                                rel="noreferrer"
-                                title="Edit collection"
-                              >
-                                <i className="fas fa-external-link-alt"></i>
-                              </a>
+              {rel.children &&
+                Array.isArray(rel.children) &&
+                rel.children.length > 0 ? (
+                <div className="children-list">
+                  {rel.children.map((child, childIndex) => {
+                    if (!child || !child.id) {
+                      console.warn("Invalid child structure:", child);
+                      return null;
+                    }
+                    return (
+                      <div key={child.id || childIndex} className="child-item">
+                        <div className="child-content">
+                          <div className="child-header">
+                            <h5 className="child-title">
+                              <Icon source={FolderIcon} />
+                              {child.title || "Untitled Child"}
+                            </h5>
+                            <a
+                              href={`https://${shop}/admin/collections/${child.id}`}
+                              className="child-edit-link"
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Edit collection"
+                            >
+                              <i className="fas fa-external-link-alt"></i>
+                            </a>
+                          </div>
+                          <div className="child-details">
+                            <div className="detail-item">
+                              <span className="detail-label">
+                                <i className="fas fa-tag me-1"></i>Tag:
+                              </span>
+                              <code className="detail-value">
+                                {child.tag || "N/A"}
+                              </code>
                             </div>
-                            <div className="child-details">
-                              <div className="detail-item">
-                                <span className="detail-label">
-                                  <i className="fas fa-tag me-1"></i>Tag:
-                                </span>
-                                <code className="detail-value">
-                                  {child.tag || "N/A"}
-                                </code>
-                              </div>
-                              <div className="detail-item">
-                                <span className="detail-label">
-                                  <i className="fas fa-redo me-1"></i>Redirect:
-                                </span>
-                                <code className="detail-value">
-                                  {child.redirect || "N/A"}
-                                </code>
-                              </div>
+                            <div className="detail-item">
+                              <span className="detail-label">
+                                <i className="fas fa-redo me-1"></i>Redirect:
+                              </span>
+                              <code className="detail-value">
+                                {child.redirect || "N/A"}
+                              </code>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="no-children">
-                    <i className="fas fa-info-circle me-2"></i>
-                    No child collections
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="no-children">
+                  <i className="fas fa-info-circle me-2"></i>
+                  No child collections
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Confirmation Modal */}
-        <div
-          className="modal fade"
-          id="confirmationModal"
-          tabIndex="-1"
-          aria-labelledby="confirmationModalLabel"
-          aria-hidden="true"
-          ref={confirmationModalRef}
-        >
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" id="confirmationModalLabel">
-                  Please Confirm
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div
-                className="modal-body"
-                id="confirmationMessage"
-                ref={confirmMessageRef}
+      {/* Confirmation Modal */}
+      <div
+        className="modal fade"
+        id="confirmationModal"
+        tabIndex="-1"
+        aria-labelledby="confirmationModalLabel"
+        aria-hidden="true"
+        ref={confirmationModalRef}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="confirmationModalLabel">
+                Please Confirm
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div
+              className="modal-body"
+              id="confirmationMessage"
+              ref={confirmMessageRef}
+            >
+              {/* Dynamic message injected here */}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
               >
-                {/* Dynamic message injected here */}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  id="confirmActionBtn"
-                  ref={confirmBtnRef}
-                >
-                  Continue
-                </button>
-              </div>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                id="confirmActionBtn"
+                ref={confirmBtnRef}
+              >
+                Continue
+              </button>
             </div>
           </div>
         </div>
