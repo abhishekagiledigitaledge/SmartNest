@@ -30,7 +30,8 @@ export async function loader({ request }) {
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
-  const { relations, currentPlan } = await res.json();
+  const response = await res.json();
+  const { relations, currentPlan } = response.data || {};
 
   return json({
     relations: relations || [],
