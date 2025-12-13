@@ -1,11 +1,26 @@
 import { Link, useNavigate } from "@remix-run/react";
-import { Spinner, Text } from "@shopify/polaris";
 import { useEffect, useState } from "react";
+import { useAppBridge } from "@shopify/app-bridge-react";
+import { getSessionToken } from "@shopify/app-bridge/utilities";
 
 export default function Index() {
   const navigate = useNavigate();
+  const app = useAppBridge();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  const fetchWithSessionToken = async (url, options = {}) => {
+    const token = await getSessionToken(app);
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+  };
 
   useEffect(() => {
     const run = async () => {
@@ -17,32 +32,34 @@ export default function Index() {
         return;
       }
 
-      fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
-        .then((res) => {
-          return res.json();
-        })
-        .then((data) => {
-          console.log("Auth API response data:", data);
-          if (!data.authorized) {
-            console.log("Shop is NOT authorized. Redirecting to install...");
-            const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
-            console.log("Install URL:", installUrl);
-            if (window.top !== window.self) {
-              console.log("Redirecting from iframe (window.top)");
-              window.top.location.href = installUrl;
-            } else {
-              window.location.href = installUrl;
-            }
+      try {
+        const res = await fetchWithSessionToken(
+          `https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`
+        );
+
+        const data = await res.json();
+        console.log("Auth API response data:", data);
+
+        if (!data.authorized) {
+          const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
+
+          if (window.top !== window.self) {
+            window.top.location.href = installUrl;
           } else {
-            setIsAuthorized(true);
+            window.location.href = installUrl;
           }
-        })
-        .catch((err) => console.error("Auth check failed:", err))
-        .finally(() => setIsCheckingAuth(false));
-    }
+        } else {
+          setIsAuthorized(true);
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
 
     requestIdleCallback(run);
-  }, []);
+  }, [app]);
 
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
