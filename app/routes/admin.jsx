@@ -79,7 +79,7 @@ export default function Admin() {
   // Function to refresh data from API
   const refreshData = async () => {
     setIsRefreshing(true);
-    console.log('sub-collection-support.myshopify.com','sub-collection-support.myshopify.com');
+    console.log('sub-collection-support.myshopify.com', 'sub-collection-support.myshopify.com');
     try {
       console.log(
         "Fetching relations from:",
@@ -428,19 +428,19 @@ export default function Admin() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const shop = "sub-collection-testing-2.myshopify.com";
+    const shop = "sub-collection-support.myshopify.com";
     if (!shop) {
       setIsCheckingAuth(false);
       return;
     }
 
     // fetch(`https://subcollection.allgovjobs.com/api/check-auth?shop=${shop}`)
-    fetch(`https://subcollection.allgovjobs.com/api/check-auth?shop=sub-collection-support.myshopify.com`)
+    fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=sub-collection-support.myshopify.com`)
       .then((res) => res.json())
       .then((data) => {
         if (!data.authorized) {
           // const installUrl = `https://subcollection.allgovjobs.com/shopify?shop=${shop}`;
-          const installUrl = `https://subcollection.allgovjobs.com/shopify?shop=sub-collection-support.myshopify.com`;
+          const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=sub-collection-support.myshopify.com`;
           if (window.top !== window.self) {
             window.top.location.href = installUrl;
           } else {
@@ -638,8 +638,8 @@ export default function Admin() {
               </div>
 
               {rel.children &&
-              Array.isArray(rel.children) &&
-              rel.children.length > 0 ? (
+                Array.isArray(rel.children) &&
+                rel.children.length > 0 ? (
                 <div className="children-list">
                   {rel.children.map((child, childIndex) => {
                     if (!child || !child.id) {
