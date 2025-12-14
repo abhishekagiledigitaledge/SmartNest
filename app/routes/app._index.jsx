@@ -32,34 +32,32 @@ export default function Index() {
         return;
       }
 
-      try {
-        const res = await fetchWithSessionToken(
-          `https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`
-        );
-
-        const data = await res.json();
-        console.log("Auth API response data:", data);
-
-        if (!data.authorized) {
-          const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
-
-          if (window.top !== window.self) {
-            window.top.location.href = installUrl;
+      fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
+        .then((res) => {
+          return res.json();
+        })
+        .then((data) => {
+          console.log("Auth API response data:", data);
+          if (!data.authorized) {
+            console.log("Shop is NOT authorized. Redirecting to install...");
+            const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
+            console.log("Install URL:", installUrl);
+            if (window.top !== window.self) {
+              console.log("Redirecting from iframe (window.top)");
+              window.top.location.href = installUrl;
+            } else {
+              window.location.href = installUrl;
+            }
           } else {
-            window.location.href = installUrl;
+            setIsAuthorized(true);
           }
-        } else {
-          setIsAuthorized(true);
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
+        })
+        .catch((err) => console.error("Auth check failed:", err))
+        .finally(() => setIsCheckingAuth(false));
+    }
 
     requestIdleCallback(run);
-  }, [app]);
+  }, []);
 
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
