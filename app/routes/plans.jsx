@@ -23,10 +23,11 @@ export const meta = () => {
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  const shop = 'sub-collection-testing-2.myshopify.com';
+  // const shop = 'sub-collection-testing-2.myshopify.com';
+  const shop = url.searchParams.get("shop");
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/";
-  const plansRes = await fetch(`${backendUrl}/api/plans?shop=${shop}`);
+  const plansRes = await fetch(`${backendUrl}/plans?shop=${shop}`);
   const { plans, currentPlan } = await plansRes.json();
 
   return json({ plans, currentPlan, shop, backendUrl });
