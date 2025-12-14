@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import adminStyles from "../styles/admin.css?url";
+import { useNavigate } from "@remix-run/react";
 
 export const links = () => [
   {
@@ -76,6 +77,7 @@ export default function Admin() {
   const confirmBtnRef = useRef(null);
   const evtSourceRef = useRef(null);
   const modalInstanceRef = useRef(null);
+  const navigate = useNavigate();
 
   // Function to refresh data from API
   const refreshData = async () => {
@@ -462,14 +464,15 @@ export default function Admin() {
 
         <div className="header-actions">
           {currentPlan?.name === "Basic" && (
-            <a
-              href={`${backendUrl}/plans?shop=${shop}`}
+            <button
+              // href={`${appUrl}/plans?shop=${shop}`}
               className="btn btn-outline-dark"
+              onClick={() => navigate(`/plans?shop=${shop}`)}
               id="plan-btn"
             >
               <i className="fas fa-crown me-2"></i>
               <span id="plan-label">Explore Plans</span>
-            </a>
+            </button>
           )}
 
           <button
