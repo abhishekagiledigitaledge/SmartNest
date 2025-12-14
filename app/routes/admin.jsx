@@ -463,9 +463,8 @@ export default function Admin() {
         </div>
 
         <div className="header-actions">
-          {currentPlan?.name === "Basic" && (
+          {/* {currentPlan?.name === "Basic" && ( */}
             <button
-              // href={`${appUrl}/plans?shop=${shop}`}
               className="btn btn-outline-dark"
               onClick={() => navigate(`/plans?shop=${shop}`)}
               id="plan-btn"
@@ -473,7 +472,7 @@ export default function Admin() {
               <i className="fas fa-crown me-2"></i>
               <span id="plan-label">Explore Plans</span>
             </button>
-          )}
+          {/* )} */}
 
           <button
             id="reset-btn"
