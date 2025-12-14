@@ -37,15 +37,15 @@ export default function Index() {
           return res.json();
         })
         .then((data) => {
-          console.log("Auth API response data:", data);
+          // console.log("Auth API response data:", data);
           if (!data.authorized) {
-            console.log("Shop is NOT authorized. Redirecting to install...");
+            // console.log("Shop is NOT authorized. Redirecting to install...");
             const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
-            console.log("Install URL:", installUrl);
+            // console.log("Install URL:", installUrl);
             if (window.top !== window.self) {
-              console.log("Redirecting from iframe (window.top)");
+              // console.log("Redirecting from iframe (window.top)");
               window.top.location.href = installUrl;
-            } else {  
+            } else {
               window.location.href = installUrl;
             }
           } else {

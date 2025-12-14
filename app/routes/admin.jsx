@@ -82,13 +82,13 @@ export default function Admin() {
   // Function to refresh data from API
   const refreshData = async () => {
     setIsRefreshing(true);
-    console.log('sub-collection-support.myshopify.com', 'sub-collection-support.myshopify.com');
+    // console.log('sub-collection-support.myshopify.com', 'sub-collection-support.myshopify.com');
     try {
-      console.log(
-        "Fetching relations from:",
-        `${backendUrl}/admin-view?shop=${shop}`,
+      // console.log(
+      //   "Fetching relations from:",
+      //   `${backendUrl}/admin-view?shop=${shop}`,
         // `${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`,
-      );
+      // );
       // const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
       const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
       if (!res.ok) {
@@ -97,9 +97,9 @@ export default function Admin() {
 
       const response = await res.json();
       const data = response.data;
-      console.log("API Response:", data);
-      console.log("Relations data:", data.relations);
-      console.log("Relations count:", data.relations?.length || 0);
+      // console.log("API Response:", data);
+      // console.log("Relations data:", data.relations);
+      // console.log("Relations count:", data.relations?.length || 0);
 
       // Ensure we have the correct data structure
       const relationsData = Array.isArray(data.relations) ? data.relations : [];
@@ -216,9 +216,9 @@ export default function Admin() {
   }, []);
 
   const confirmAction = (message, onConfirm) => {
-    console.log("confirmAction called with message:", message);
-    console.log("Modal instance:", modalInstanceRef.current);
-    console.log("Bootstrap ready:", bootstrapReady);
+    // console.log("confirmAction called with message:", message);
+    // console.log("Modal instance:", modalInstanceRef.current);
+    // console.log("Bootstrap ready:", bootstrapReady);
 
     // Set message
     if (confirmMessageRef.current) {
