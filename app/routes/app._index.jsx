@@ -45,7 +45,7 @@ export default function Index() {
             if (window.top !== window.self) {
               console.log("Redirecting from iframe (window.top)");
               window.top.location.href = installUrl;
-            } else {
+            } else {  
               window.location.href = installUrl;
             }
           } else {

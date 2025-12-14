@@ -463,7 +463,7 @@ export default function Admin() {
         <div className="header-actions">
           {currentPlan?.name === "Basic" && (
             <a
-              href={`${appUrl}/plans?shop=${shop}`}
+              href={`${backendUrl}/plans?shop=${shop}`}
               className="btn btn-outline-dark"
               id="plan-btn"
             >
