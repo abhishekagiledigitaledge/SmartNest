@@ -1,55 +1,104 @@
-import { redirect } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
-import { login } from "../../shopify.server";
-import styles from "./styles.module.css";
+import { Link, useNavigate } from "@remix-run/react";
+import { useEffect, useState } from "react";
+// import { useAppBridge } from "@shopify/app-bridge-react";
+// import { getSessionToken } from "@shopify/app-bridge/utilities";
 
-export const loader = async ({ request }) => {
-  const url = new URL(request.url);
+export default function Index() {
+  const navigate = useNavigate();
+  // const app = useAppBridge();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  if (url.searchParams.get("shop")) {
-    throw redirect(`/app?${url.searchParams.toString()}`);
+  // const fetchWithSessionToken = async (url, options = {}) => {
+  //   const token = await getSessionToken(app);
+
+  //   return fetch(url, {
+  //     ...options,
+  //     headers: {
+  //       ...(options.headers || {}),
+  //       Authorization: `Bearer ${token}`,
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  // };
+
+  useEffect(() => {
+    const run = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shop = urlParams.get("shop");
+
+      if (!shop) {
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
+        .then((res) => {
+          return res.json();
+        })
+        .then((data) => {
+          // console.log("Auth API response data:", data);
+          if (!data.authorized) {
+            // console.log("Shop is NOT authorized. Redirecting to install...");
+            const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
+            // console.log("Install URL:", installUrl);
+            if (window.top !== window.self) {
+              // console.log("Redirecting from iframe (window.top)");
+              window.top.location.href = installUrl;
+            } else {
+              window.location.href = installUrl;
+            }
+          } else {
+            setIsAuthorized(true);
+          }
+        })
+        .catch((err) => console.error("Auth check failed:", err))
+        .finally(() => setIsCheckingAuth(false));
+    }
+    run();
+
+  }, []);
+
+  // Separate effect: redirect ONLY when fully authorized
+  useEffect(() => {
+    if (isAuthorized) {
+      navigate("/admin", { replace: true });
+    }
+  }, [isAuthorized]);
+
+  if (isCheckingAuth) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 32,
+          display: "flex",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Sub Collection App
+          </h1>
+          <p style={{ color: "#666" }}>
+            Preparing your dashboard…
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  return { showForm: Boolean(login) };
-};
-
-export default function App() {
-  const { showForm } = useLoaderData();
+  if (!isAuthorized) {
+    return (
+      <div style={{ padding: 32 }}>
+        <p>Redirecting…</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.index}>
-      <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
-        <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
-        </p>
-        {showForm && (
-          <Form className={styles.form} method="post" action="/auth/login">
-            <label className={styles.label}>
-              <span>Shop domain</span>
-              <input className={styles.input} type="text" name="shop" />
-              <span>e.g: my-shop-domain.myshopify.com</span>
-            </label>
-            <button className={styles.button} type="submit">
-              Log in
-            </button>
-          </Form>
-        )}
-        <ul className={styles.list}>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-        </ul>
-      </div>
-    </div>
+    <></>
   );
 }
