@@ -1,0 +1,115 @@
+{% schema %}
+{
+  "name": "Sub Collection Support",
+  "target": "section"
+}
+{% endschema %}
+
+<style>
+.effective-collection-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.effective-collection-block .ecb-content {
+  flex: 1;
+}
+
+.effective-collection-block h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #222;
+}
+
+.effective-collection-block p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+}
+
+.effective-collection-block .ecb-image {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.effective-collection-block .ecb-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .effective-collection-block {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .effective-collection-block .ecb-image {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+}
+</style>
+
+{% if collection.metafields.custom.parent_collections.value %}
+  {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
+  {% if first_parent and first_parent.path %}
+    <script>
+      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+    </script>
+  {% endif %}
+{% endif %}
+
+
+{%- comment -%}
+────────────────────────────────────────
+SUB COLLECTION LOGIC
+Metafield type:
+custom.new_sub_collects → List of collection references
+────────────────────────────────────────
+{%- endcomment -%}
+
+{% assign tag_handle = request.path | split: '/' | last %}
+
+{% assign effective_title = collection.title %}
+{% assign effective_description = collection.description %}
+{% assign effective_image = collection.image %}
+
+{% if collection.metafields.custom.new_sub_collects.value %}
+  {% for child_collection in collection.metafields.custom.new_sub_collects.value %}
+    {% if child_collection.handle == tag_handle %}
+      {% assign effective_title = child_collection.title %}
+      {% assign effective_description = child_collection.description %}
+      {% assign effective_image = child_collection.image %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<div class="effective-collection-block">
+  <div class="ecb-content">
+    <h2>{{ effective_title }}</h2>
+    <p>{{ effective_description }}</p>
+  </div>
+
+  {% if effective_image %}
+    <div class="ecb-image">
+      <img
+        src="{{ effective_image | image_url: width: 900 }}"
+        alt="{{ effective_title | escape }}"
+        width="{{ effective_image.width }}"
+        height="{{ effective_image.height }}"
+        loading="lazy"
+      >
+    </div>
+  {% endif %}
+</div>
