@@ -1,26 +1,26 @@
 import { Link, useNavigate } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { getSessionToken } from "@shopify/app-bridge/utilities";
+// import { useAppBridge } from "@shopify/app-bridge-react";
+// import { getSessionToken } from "@shopify/app-bridge/utilities";
 
 export default function Index() {
   const navigate = useNavigate();
-  const app = useAppBridge();
+  // const app = useAppBridge();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  const fetchWithSessionToken = async (url, options = {}) => {
-    const token = await getSessionToken(app);
+  // const fetchWithSessionToken = async (url, options = {}) => {
+  //   const token = await getSessionToken(app);
 
-    return fetch(url, {
-      ...options,
-      headers: {
-        ...(options.headers || {}),
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-  };
+  //   return fetch(url, {
+  //     ...options,
+  //     headers: {
+  //       ...(options.headers || {}),
+  //       Authorization: `Bearer ${token}`,
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  // };
 
   useEffect(() => {
     const run = async () => {
@@ -55,16 +55,16 @@ export default function Index() {
         .catch((err) => console.error("Auth check failed:", err))
         .finally(() => setIsCheckingAuth(false));
     }
+    run();
 
-    requestIdleCallback(run);
   }, []);
 
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
     if (isAuthorized) {
-      navigate("/admin");
+      navigate("/admin", { replace: true });
     }
-  }, [isAuthorized, navigate]);
+  }, [isAuthorized]);
 
   if (isCheckingAuth) {
     return (
