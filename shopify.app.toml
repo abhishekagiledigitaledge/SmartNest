@@ -2,7 +2,7 @@
 
 client_id = "255035a083e2a557a7b65c60a1060e3c"
 name = "SmartNest"
-application_url = "https://subcollection.allgovjobs.com/app"
+application_url = "https://subcollection.allgovjobs.com"
 embedded = true
 
 [build]
