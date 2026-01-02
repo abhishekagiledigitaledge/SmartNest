@@ -1,33 +1,42 @@
-import { Link, useNavigate } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
-// import { useAppBridge } from "@shopify/app-bridge-react";
-// import { getSessionToken } from "@shopify/app-bridge/utilities";
+
+/* ===========================
+   ✅ LOADER (SERVER SIDE)
+   =========================== */
+export async function loader({ request }) {
+  const url = new URL(request.url);
+
+  let shop = url.searchParams.get("shop");
+
+  // Shopify iframe fallback
+  // if (!shop) {
+  //   shop = request.headers.get("X-Shopify-Shop-Domain");
+  // }
+
+  return json({ shop: shop || null });
+}
+
+/* ===========================
+   ✅ COMPONENT (CLIENT SIDE)
+   =========================== */
 
 export default function Index() {
   const navigate = useNavigate();
-  // const app = useAppBridge();
+  const loaderData = useLoaderData();
+  const loaderShop = loaderData?.shop;
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // const fetchWithSessionToken = async (url, options = {}) => {
-  //   const token = await getSessionToken(app);
-
-  //   return fetch(url, {
-  //     ...options,
-  //     headers: {
-  //       ...(options.headers || {}),
-  //       Authorization: `Bearer ${token}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-  // };
-
   useEffect(() => {
     const run = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shop = urlParams.get("shop");
+       // 🔥 FINAL SHOP RESOLUTION
+      const urlShop = new URLSearchParams(window.location.search).get("shop");
+      const shop = urlShop || loaderShop;
 
       if (!shop) {
+        console.error("❌ Shop not found");
         setIsCheckingAuth(false);
         return;
       }
@@ -37,13 +46,9 @@ export default function Index() {
           return res.json();
         })
         .then((data) => {
-          // console.log("Auth API response data:", data);
           if (!data.authorized) {
-            // console.log("Shop is NOT authorized. Redirecting to install...");
             const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
-            // console.log("Install URL:", installUrl);
             if (window.top !== window.self) {
-              // console.log("Redirecting from iframe (window.top)");
               window.top.location.href = installUrl;
             } else {
               window.location.href = installUrl;
@@ -57,9 +62,8 @@ export default function Index() {
     }
     run();
 
-  }, []);
+  }, [loaderShop]);
 
-  // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
     if (isAuthorized) {
       navigate("/admin", { replace: true });
@@ -98,7 +102,5 @@ export default function Index() {
     );
   }
 
-  return (
-    <></>
-  );
+  return null;
 }

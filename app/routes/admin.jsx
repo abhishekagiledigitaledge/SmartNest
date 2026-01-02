@@ -26,9 +26,9 @@ export const meta = () => {
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  console.log("Loader URL:", url.toString(),request?.url);
+  // console.log("Loader URL:", url.toString(),request?.url);
   const shop = url.searchParams.get("shop") || "";
-  console.log("Loader shop param:", shop);
+  // console.log("Loader shop param:", shop);
   
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
