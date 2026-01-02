@@ -66,7 +66,7 @@ export default function Index() {
 
   useEffect(() => {
     if (isAuthorized) {
-      navigate("/admin", { replace: true });
+      navigate(`/admin?shop=${loaderShop}`, { replace: true });
     }
   }, [isAuthorized]);
 

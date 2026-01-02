@@ -26,10 +26,19 @@ export const meta = () => {
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  // console.log("Loader URL:", url.toString(),request?.url);
-  const shop = url.searchParams.get("shop") || "";
-  // console.log("Loader shop param:", shop);
-  
+  let shop = url.searchParams.get("shop");
+
+  // 2️⃣ Shopify iframe header fallback (MOST IMPORTANT)
+  if (!shop) {
+    shop = request.headers.get("X-Shopify-Shop-Domain");
+  }
+
+  // 3️⃣ Final safety check
+  if (!shop) {
+    console.error("❌ Admin loader: shop missing");
+    throw new Response("Shop parameter missing", { status: 400 });
+  }
+
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
   const response = await res.json();
@@ -91,7 +100,7 @@ export default function Admin() {
 
       const response = await res.json();
       const data = response.data;
-      
+
       // Ensure we have the correct data structure
       const relationsData = Array.isArray(data.relations) ? data.relations : [];
       setRelations(relationsData);
@@ -449,14 +458,14 @@ export default function Admin() {
 
         <div className="header-actions">
           {/* {currentPlan?.name === "Basic" && ( */}
-            <button
-              className="btn btn-outline-dark"
-              onClick={() => navigate(`/plans?shop=${shop}`)}
-              id="plan-btn"
-            >
-              <i className="fas fa-crown me-2"></i>
-              <span id="plan-label">Explore Plans</span>
-            </button>
+          <button
+            className="btn btn-outline-dark"
+            onClick={() => navigate(`/plans?shop=${shop}`)}
+            id="plan-btn"
+          >
+            <i className="fas fa-crown me-2"></i>
+            <span id="plan-label">Explore Plans</span>
+          </button>
           {/* )} */}
 
           <button
