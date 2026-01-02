@@ -26,9 +26,10 @@ export const meta = () => {
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
-  // console.log("Loader shop param:", shop);
-
+  console.log("Loader URL:", url.toString(),request?.url);
+  const shop = url.searchParams.get("shop") || "";
+  console.log("Loader shop param:", shop);
+  
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
   const response = await res.json();
@@ -82,14 +83,7 @@ export default function Admin() {
   // Function to refresh data from API
   const refreshData = async () => {
     setIsRefreshing(true);
-    // console.log('sub-collection-support.myshopify.com', 'sub-collection-support.myshopify.com');
     try {
-      // console.log(
-      //   "Fetching relations from:",
-      //   `${backendUrl}/admin-view?shop=${shop}`,
-        // `${backendUrl}/admin-view?shop=sub-collection-support.myshopify.com`,
-      // );
-      // const res = await fetch(`${backendUrl}/api/relations?shop=${shop}`);
       const res = await fetch(`${backendUrl}/admin-view?shop=${shop}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
@@ -97,10 +91,7 @@ export default function Admin() {
 
       const response = await res.json();
       const data = response.data;
-      // console.log("API Response:", data);
-      // console.log("Relations data:", data.relations);
-      // console.log("Relations count:", data.relations?.length || 0);
-
+      
       // Ensure we have the correct data structure
       const relationsData = Array.isArray(data.relations) ? data.relations : [];
       setRelations(relationsData);
@@ -216,10 +207,6 @@ export default function Admin() {
   }, []);
 
   const confirmAction = (message, onConfirm) => {
-    // console.log("confirmAction called with message:", message);
-    // console.log("Modal instance:", modalInstanceRef.current);
-    // console.log("Bootstrap ready:", bootstrapReady);
-
     // Set message
     if (confirmMessageRef.current) {
       confirmMessageRef.current.textContent = message;
@@ -288,7 +275,6 @@ export default function Admin() {
 
           // Start sync (fire and forget)
           fetch(`${backendUrl}/sync-collections?shop=${shop}`)
-            // fetch(`${backendUrl}/sync-collections?shop=sub-collection-support.myshopify.com`)
             .then((response) => {
               console.log("Sync request initiated, status:", response.status);
             })
@@ -311,7 +297,6 @@ export default function Admin() {
           // Listen for real-time progress
           console.log(
             "Connecting to EventSource:",
-            // `${backendUrl}/sync-stream?shop=${shop}`,
             `${backendUrl}/sync-stream?shop=${shop}`,
           );
           const evtSource = new EventSource(
