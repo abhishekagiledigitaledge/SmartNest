@@ -71,9 +71,6 @@
 }
 </style>
 
-{{collection.metafields.custom.parent_collections}}
-{{collection.metafields.custom.parent_collections.value}}
-
 
 {% if collection.metafields.custom.parent_collections.value %}
   {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
@@ -93,22 +90,33 @@ custom.new_sub_collects → List of collection references
 ────────────────────────────────────────
 {%- endcomment -%}
 
-{% assign tag_handle = request.path | split: '/' | last %}
+<!-- Sub Collection Support: Logic Start -->
+{%- assign tag_handle = request.path | split: '/' | last -%}
+{%- assign sub_json = collection.metafields.custom.new_sub_collects.value -%}
 
-{% assign effective_title = collection.title %}
-{% assign effective_description = collection.description %}
-{% assign effective_image = collection.image %}
+{%- assign effective_title = collection.title -%}
+{%- assign effective_description = collection.description -%}
+{%- assign effective_image = collection.image -%}
 
-{% if collection.metafields.custom.new_sub_collects.value %}
-  {% for child_collection in collection.metafields.custom.new_sub_collects.value %}
-    {% if child_collection.handle == tag_handle %}
-      {% assign effective_title = child_collection.title %}
-      {% assign effective_description = child_collection.description %}
-      {% assign effective_image = child_collection.image %}
-      {% break %}
-    {% endif %}
-  {% endfor %}
-{% endif %}
+{%- if sub_json -%}
+  {%- for sub in sub_json -%}
+    {%- assign sub_tag_handle = sub.tag | handleize -%}
+    {%- if sub_tag_handle == tag_handle -%}
+      {%- assign child_handle = sub.handle | handleize -%}
+      {%- assign child_collection = collections[child_handle] -%}
+
+      {%- if child_collection -%}
+        {%- assign effective_title = child_collection.title -%}
+        {%- assign effective_description = child_collection.description -%}
+        {%- if child_collection.image != blank -%}
+          {%- assign effective_image = child_collection.image -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+<!-- Sub Collection Support: Logic End -->
 
 <div class="effective-collection-block">
   <div class="ecb-content">
