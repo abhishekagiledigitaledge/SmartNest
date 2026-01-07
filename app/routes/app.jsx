@@ -1,62 +1,37 @@
-import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 
-/* ===========================
-   POLARIS STYLES
-=========================== */
-export const links = () => [
-  { rel: "stylesheet", href: polarisStyles },
-];
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
-/* ===========================
-   LOADER (AUTH + SHOP)
-=========================== */
 export const loader = async ({ request }) => {
-  const { session } = await authenticate.admin(request);
+  await authenticate.admin(request);
 
-  return {
-    apiKey: process.env.SHOPIFY_API_KEY || "",
-    shop: session.shop, // ✅ shop mil gaya
-  };
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
-/* ===========================
-   ROOT APP
-=========================== */
 export default function App() {
-  const { apiKey, shop } = useLoaderData();
-
-  console.log("Current Shop:", shop);
+  const { apiKey } = useLoaderData();
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      {/* ✅ Shopify App Bridge Navigation */}
-      <NavMenu
-        navigationLinks={[
-          {
-            label: "Home",
-            destination: "/app/admin",
-          },
-          {
-            label: "Onboarding",
-            destination: "/app/onboarding",
-          },
-        ]}
-      />
-
-      {/* Child routes */}
-      <Outlet context={{ shop }} />
+      <NavMenu>
+        <Link to="/app/admin" rel="home">
+          Home
+        </Link>
+        <Link to="/app/onboarding">
+          Onboarding
+        </Link>
+      </NavMenu>
+      <Outlet />
     </AppProvider>
   );
 }
 
-/* ===========================
-   ERROR + HEADERS (REQUIRED)
-=========================== */
+// Shopify needs Remix to catch some thrown responses, so that their headers are included in the response.
 export function ErrorBoundary() {
   return boundary.error(useRouteError());
 }
