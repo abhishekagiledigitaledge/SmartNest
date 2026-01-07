@@ -16,6 +16,10 @@
 }
 {% endschema %}
 
+{% if section.settings.enable_block == false %}
+  {% return %}
+{% endif %}
+
 <style>
 .effective-collection-block {
   display: flex;
@@ -71,32 +75,54 @@
 }
 </style>
 
+{%- comment -%}
+────────────────────────────────────────
+OPTIONAL: PARENT COLLECTION REDIRECT
+Metafield: custom.parent_collections
+────────────────────────────────────────
+{%- endcomment -%}
 
 {% if collection.metafields.custom.parent_collections.value %}
   {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
-  {% if first_parent and first_parent.path %}
+  {% if first_parent and first_parent.handle != collection.handle %}
     <script>
-      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+      window.location.href = "{{ routes.collections_url }}/{{ first_parent.handle }}";
     </script>
   {% endif %}
 {% endif %}
 
-
 {%- comment -%}
 ────────────────────────────────────────
-SUB COLLECTION LOGIC
-Metafield type:
-custom.new_sub_collects → List of collection references
+URL HANDLING
+/collections/parent
+/collections/parent/tag1
 ────────────────────────────────────────
 {%- endcomment -%}
 
-{% assign tag_handle = request.path | split: '/' | last %}
+{% assign path_parts = request.path | split: '/' %}
+{% assign parent_handle = path_parts[2] %}
+{% assign tag_handle = path_parts[3] | default: '' %}
+
+{%- comment -%}
+────────────────────────────────────────
+DEFAULT VALUES (PARENT)
+────────────────────────────────────────
+{%- endcomment -%}
 
 {% assign effective_title = collection.title %}
 {% assign effective_description = collection.description %}
 {% assign effective_image = collection.image %}
 
-{% if collection.metafields.custom.new_sub_collects.value %}
+{%- comment -%}
+────────────────────────────────────────
+SUB COLLECTION LOGIC
+Metafield:
+custom.new_sub_collects → List of collection references
+Child collection HANDLE must match tag in URL
+────────────────────────────────────────
+{%- endcomment -%}
+
+{% if tag_handle != blank and collection.metafields.custom.new_sub_collects.value %}
   {% for child_collection in collection.metafields.custom.new_sub_collects.value %}
     {% if child_collection.handle == tag_handle %}
       {% assign effective_title = child_collection.title %}
@@ -110,7 +136,10 @@ custom.new_sub_collects → List of collection references
 <div class="effective-collection-block">
   <div class="ecb-content">
     <h2>{{ effective_title }}</h2>
-    <p>{{ effective_description }}</p>
+
+    {% if effective_description != blank %}
+      <p>{{ effective_description }}</p>
+    {% endif %}
   </div>
 
   {% if effective_image %}
@@ -118,8 +147,6 @@ custom.new_sub_collects → List of collection references
       <img
         src="{{ effective_image | image_url: width: 900 }}"
         alt="{{ effective_title | escape }}"
-        width="{{ effective_image.width }}"
-        height="{{ effective_image.height }}"
         loading="lazy"
       >
     </div>
