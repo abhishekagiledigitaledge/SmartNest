@@ -10,19 +10,22 @@ export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    shop: session.shop,
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, shop } = useLoaderData();
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <NavMenu>
-        <Link to="/app/admin" rel="home">
+        <Link to={`/app/admin?shop=${shop}`} rel="home">
           Home
         </Link>
-        <Link to="/app/onboarding">
+        <Link to={`/app/onboarding?shop=${shop}`}>
           Onboarding
         </Link>
       </NavMenu>
