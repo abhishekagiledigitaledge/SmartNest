@@ -1,7 +1,15 @@
 {% schema %}
 {
   "name": "Sub Collection Support",
-  "target": "section"
+  "target": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_block",
+      "label": "Enable Sub Collection Block",
+      "default": true
+    }
+  ]
 }
 {% endschema %}
 
@@ -59,6 +67,7 @@
   }
 }
 </style>
+
 
 {% if collection.metafields.custom.parent_collections.value %}
   {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}

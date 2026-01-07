@@ -443,6 +443,40 @@ export default function Admin() {
     });
   };
 
+  useEffect(() => {
+    const modalEl = confirmationModalRef.current;
+    if (!modalEl) return;
+
+    const handleCancel = () => {
+      console.log("❌ Cancel clicked → resetting buttons");
+
+      resetSyncButton();
+      resetResetButton();
+    };
+
+    modalEl.addEventListener("hidden.bs.modal", handleCancel);
+
+    return () => {
+      modalEl.removeEventListener("hidden.bs.modal", handleCancel);
+    };
+  }, []);
+
+  const resetSyncButton = () => {
+    setSyncBtnState({
+      disabled: false,
+      loading: false,
+      label: "Sync Now",
+    });
+  };
+
+  const resetResetButton = () => {
+    setResetBtnState({
+      disabled: false,
+      loading: false,
+      label: "Reset",
+    });
+  };
+
   return (
     <div className="admin-container">
       <div className="admin-header">

@@ -28,10 +28,12 @@ export default function Index() {
   const loaderShop = loaderData?.shop;
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
+
 
   useEffect(() => {
     const run = async () => {
-       // 🔥 FINAL SHOP RESOLUTION
+      // 🔥 FINAL SHOP RESOLUTION
       const urlShop = new URLSearchParams(window.location.search).get("shop");
       const shop = urlShop || loaderShop;
 
@@ -41,13 +43,13 @@ export default function Index() {
         return;
       }
 
-      fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
+      fetch(`${backendUrl}/api/check-auth?shop=${shop}`)
         .then((res) => {
           return res.json();
         })
         .then((data) => {
           if (!data.authorized) {
-            const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
+            const installUrl = `${backendUrl}/shopify?shop=${shop}`;
             if (window.top !== window.self) {
               window.top.location.href = installUrl;
             } else {
@@ -66,7 +68,7 @@ export default function Index() {
 
   useEffect(() => {
     if (isAuthorized) {
-      navigate(`/admin?shop=${loaderShop}`, { replace: true });
+      navigate(`/app/onboarding?shop=${loaderShop}`, { replace: true });
     }
   }, [isAuthorized]);
 

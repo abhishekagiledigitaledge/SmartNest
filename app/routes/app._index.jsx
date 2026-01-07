@@ -8,6 +8,7 @@ export default function Index() {
   // const app = useAppBridge();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
 
   // const fetchWithSessionToken = async (url, options = {}) => {
   //   const token = await getSessionToken(app);
@@ -32,18 +33,14 @@ export default function Index() {
         return;
       }
 
-      fetch(`https://subcollection.allgovjobs.com/backend/api/check-auth?shop=${shop}`)
+      fetch(`${backendUrl}/api/check-auth?shop=${shop}`)
         .then((res) => {
           return res.json();
         })
         .then((data) => {
-          // console.log("Auth API response data:", data);
           if (!data.authorized) {
-            // console.log("Shop is NOT authorized. Redirecting to install...");
-            const installUrl = `https://subcollection.allgovjobs.com/backend/shopify?shop=${shop}`;
-            // console.log("Install URL:", installUrl);
+            const installUrl = `${backendUrl}/shopify?shop=${shop}`;
             if (window.top !== window.self) {
-              // console.log("Redirecting from iframe (window.top)");
               window.top.location.href = installUrl;
             } else {
               window.location.href = installUrl;
@@ -62,7 +59,7 @@ export default function Index() {
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
     if (isAuthorized) {
-      navigate("/admin", { replace: true });
+      navigate("/app/onboarding", { replace: true });
     }
   }, [isAuthorized]);
 
@@ -90,10 +87,47 @@ export default function Index() {
     );
   }
 
+  if (!isCheckingAuth) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 32,
+          display: "flex",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Login Failed
+          </h1>
+          <p style={{ color: "#666" }}>
+            Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthorized) {
     return (
-      <div style={{ padding: 32 }}>
-        <p>Redirecting…</p>
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 32,
+          display: "flex",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Please wait...
+          </h1>
+        </div>
       </div>
     );
   }
