@@ -12,6 +12,17 @@ import {
 import { useEffect, useState } from "react";
 import { useSearchParams } from "@remix-run/react";
 import { InlineGrid } from "@shopify/polaris";
+import { json } from "@remix-run/node";
+import { authenticate } from "../shopify.server";
+
+
+/* ===========================
+   LOADER (REQUIRED)
+=========================== */
+export const loader = async ({ request }) => {
+  await authenticate.admin(request);
+  return json({});
+};
 
 /* ===========================
    ONBOARDING PAGE
@@ -28,7 +39,6 @@ export default function OnboardingPage() {
     fetch(`${backendUrl}/api/check-widget?shop=${SHOP}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         setWidgetEnabled(data.installed);
       })
       .catch(() => setWidgetEnabled(false));
