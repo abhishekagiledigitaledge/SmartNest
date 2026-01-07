@@ -71,53 +71,60 @@
 }
 </style>
 
+{{collection.metafields.custom.parent_collections}}
+{%collection.metafields.custom.parent_collections%}
+{{}}
 
 {% if collection.metafields.custom.parent_collections.value %}
-  {% assign first_parent = collection.metafields.custom.parent_collections.value | parse_json | first %}
-  {% if first_parent.path %}
+  {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
+  {% if first_parent and first_parent.path %}
     <script>
-      window.location.href = "{{ first_parent.path }}";
+      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
     </script>
   {% endif %}
 {% endif %}
 
 
-<!-- Sub Collection Support: Logic Start -->
-{%- assign tag_handle = request.path | split: '/' | last -%}
-{%- assign sub_json = collection.metafields.custom.new_sub_collects.value | parse_json -%}
+{%- comment -%}
+────────────────────────────────────────
+SUB COLLECTION LOGIC
+Metafield type:
+custom.new_sub_collects → List of collection references
+────────────────────────────────────────
+{%- endcomment -%}
 
-{%- assign effective_title = collection.title -%}
-{%- assign effective_description = collection.description -%}
-{%- assign effective_image = collection.image -%}
+{% assign tag_handle = request.path | split: '/' | last %}
 
-{%- if sub_json -%}
-  {%- for sub in sub_json -%}
-    {%- assign sub_tag_handle = sub.tag | handleize -%}
-    {%- if sub_tag_handle == tag_handle -%}
-      {%- assign child_handle = sub.handle | handleize -%}
-      {%- assign child_collection = collections[child_handle] -%}
+{% assign effective_title = collection.title %}
+{% assign effective_description = collection.description %}
+{% assign effective_image = collection.image %}
 
-      {%- if child_collection -%}
-        {%- assign effective_title = child_collection.title -%}
-        {%- assign effective_description = child_collection.description -%}
-        {%- if child_collection.image != blank -%}
-          {%- assign effective_image = child_collection.image -%}
-        {%- endif -%}
-      {%- endif -%}
-      {%- break -%}
-    {%- endif -%}
-  {%- endfor -%}
-{%- endif -%}
-<!-- Sub Collection Support: Logic End -->
+{% if collection.metafields.custom.new_sub_collects.value %}
+  {% for child_collection in collection.metafields.custom.new_sub_collects.value %}
+    {% if child_collection.handle == tag_handle %}
+      {% assign effective_title = child_collection.title %}
+      {% assign effective_description = child_collection.description %}
+      {% assign effective_image = child_collection.image %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
 <div class="effective-collection-block">
   <div class="ecb-content">
     <h2>{{ effective_title }}</h2>
     <p>{{ effective_description }}</p>
   </div>
+
   {% if effective_image %}
-  <div class="ecb-image">
-    <img src="{{ effective_image.src | img_url: 'master' }}" alt="{{ effective_title }}">
-  </div>
+    <div class="ecb-image">
+      <img
+        src="{{ effective_image | image_url: width: 900 }}"
+        alt="{{ effective_title | escape }}"
+        width="{{ effective_image.width }}"
+        height="{{ effective_image.height }}"
+        loading="lazy"
+      >
+    </div>
   {% endif %}
 </div>
