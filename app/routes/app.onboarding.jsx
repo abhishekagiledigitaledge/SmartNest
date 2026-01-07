@@ -39,13 +39,12 @@ export default function OnboardingPage() {
      THEME EDITOR LINKS
   =========================== */
   const openCollectionEditor = () => {
-    window.open(
+    const url =
       `https://${SHOP}/admin/themes/current/editor` +
       `?context=collections` +
-      `&template=collection` +
-      `&addAppBlockId=sub_collection_support`,
-      "_blank"
-    );
+      `&template=collection`;
+
+    window.open(url, "_blank");
   };
 
   /* ===========================
