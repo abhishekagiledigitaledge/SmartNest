@@ -104,12 +104,15 @@ export default function Index() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+          {/* <h1 style={{ fontSize: 24, marginBottom: 8 }}>
             Login Failed
           </h1>
           <p style={{ color: "#666" }}>
             Please try again.
-          </p>
+          </p> */}
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Please wait...
+          </h1>
         </div>
       </div>
     );
