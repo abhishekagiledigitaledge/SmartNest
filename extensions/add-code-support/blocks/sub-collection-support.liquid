@@ -72,8 +72,8 @@
 </style>
 
 {{collection.metafields.custom.parent_collections}}
-{%collection.metafields.custom.parent_collections%}
-{{}}
+{{collection.metafields.custom.parent_collections.value}}
+
 
 {% if collection.metafields.custom.parent_collections.value %}
   {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
