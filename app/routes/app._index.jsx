@@ -1,32 +1,36 @@
-import { Link, useNavigate } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
-// import { useAppBridge } from "@shopify/app-bridge-react";
-// import { getSessionToken } from "@shopify/app-bridge/utilities";
+
+/* ===========================
+   ✅ LOADER (SERVER SIDE)
+   =========================== */
+export async function loader({ request }) {
+  const url = new URL(request.url);
+
+  let shop = url.searchParams.get("shop");
+
+  // Shopify iframe fallback
+  // if (!shop) {
+  //   shop = request.headers.get("X-Shopify-Shop-Domain");
+  // }
+
+  return json({ shop: shop || null });
+}
 
 export default function Index() {
   const navigate = useNavigate();
-  // const app = useAppBridge();
+  const loaderData = useLoaderData();
+  const loaderShop = loaderData?.shop;
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
 
-  // const fetchWithSessionToken = async (url, options = {}) => {
-  //   const token = await getSessionToken(app);
-
-  //   return fetch(url, {
-  //     ...options,
-  //     headers: {
-  //       ...(options.headers || {}),
-  //       Authorization: `Bearer ${token}`,
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-  // };
 
   useEffect(() => {
     const run = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shop = urlParams.get("shop");
+      const urlShop = new URLSearchParams(window.location.search).get("shop");
+      const shop = urlShop || loaderShop;
 
       if (!shop) {
         setIsCheckingAuth(false);
@@ -59,7 +63,7 @@ export default function Index() {
   // Separate effect: redirect ONLY when fully authorized
   useEffect(() => {
     if (isAuthorized) {
-      navigate("/app/onboarding", { replace: true });
+      navigate(`/app/onboarding?shop=${loaderShop}`, { replace: true });
     }
   }, [isAuthorized]);
 

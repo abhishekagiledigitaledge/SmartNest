@@ -96,10 +96,47 @@ export default function Index() {
     );
   }
 
+  if (!isCheckingAuth) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 32,
+          display: "flex",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Login Failed
+          </h1>
+          <p style={{ color: "#666" }}>
+            Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthorized) {
     return (
-      <div style={{ padding: 32 }}>
-        <p>Redirecting…</p>
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 32,
+          display: "flex",
+          alignItems: "center",      // vertical center
+          justifyContent: "center",  // horizontal center ✅
+          textAlign: "center",       // optional (text center)
+        }}
+      >
+        <div>
+          <h1 style={{ fontSize: 24, marginBottom: 8 }}>
+            Please wait...
+          </h1>
+        </div>
       </div>
     );
   }
