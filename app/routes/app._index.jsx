@@ -8,16 +8,6 @@ import { useEffect, useState } from "react";
 export async function loader({ request }) {
   const url = new URL(request.url);
 
-  // // 🔧 Fix double /apps issue (Managed Pricing safe fix)
-  // if (url.pathname.includes("/apps/smartnest-1/apps/smartnest-1")) {
-  //   const fixedPath = url.pathname.replace(
-  //     "/apps/smartnest-1/apps/smartnest-1/app/admin",
-  //     "/apps/smartnest-1/app/admin"
-  //   );
-
-  //   return redirect(`${fixedPath}${url.search}`);
-  // }
-
   let shop = url.searchParams.get("shop");
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";

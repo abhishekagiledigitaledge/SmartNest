@@ -3,7 +3,7 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import adminStyles from "../styles/admin.css?url";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useSearchParams } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 
 export const links = () => [
@@ -96,6 +96,14 @@ export default function Admin() {
   const evtSourceRef = useRef(null);
   const modalInstanceRef = useRef(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const chargeId = searchParams.get("charge_id");
+
+  useEffect(() => {
+    if (chargeId) {
+      navigate("/app/admin", { replace: true });
+    }
+  }, [chargeId, navigate]);
 
   // Function to refresh data from API
   const refreshData = async () => {
