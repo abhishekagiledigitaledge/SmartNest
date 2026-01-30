@@ -10,6 +10,11 @@ export async function loader({ request }) {
 
   let shop = url.searchParams.get("shop");
 
+  // Shopify iframe fallback
+  // if (!shop) {
+  //   shop = request.headers.get("X-Shopify-Shop-Domain");
+  // }
+
   return json({ shop: shop || null });
 }
 
