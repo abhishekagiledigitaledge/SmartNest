@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import plansStyles from "../styles/plans.css?url";
 
 export const links = () => [
@@ -35,6 +35,7 @@ export async function loader({ request }) {
 
 export default function Plans() {
   const { plans, currentPlan, shop, backendUrl } = useLoaderData();
+  const navigate = useNavigate();
 
   async function handlePurchase(planId) {
     try {
@@ -65,6 +66,9 @@ export default function Plans() {
 
   return (
     <div className="plans-container">
+      <button className="btn btn-outline-secondary mb-3" onClick={() => navigate(-1)}>
+        <i className="fas fa-arrow-left me-2"></i> Back
+      </button>
       <div className="plans-header">
         <h1 className="plans-title">
           <i className="fas fa-crown me-2"></i>

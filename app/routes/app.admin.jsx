@@ -494,7 +494,12 @@ export default function Admin() {
           {/* {currentPlan?.name === "Basic" && ( */}
           <button
             className="btn btn-outline-dark"
-            onClick={() => navigate(`/plans?shop=${shop}`)}
+            onClick={() => {
+              const appHandle = "smartnest-1"; // TODO: Replace with your actual app handle from Shopify Partner Dashboard
+              const storeHandle = shop.replace(".myshopify.com", "");
+              const planUrl = `https://admin.shopify.com/store/${storeHandle}/charges/${appHandle}/pricing_plans`;
+              window.open(planUrl, "_top");
+            }}
             id="plan-btn"
           >
             <i className="fas fa-crown me-2"></i>

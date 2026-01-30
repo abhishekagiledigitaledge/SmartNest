@@ -11,6 +11,11 @@ automatically_update_urls_on_dev = true
 [webhooks]
 api_version = "2026-01"
 
+ # 🔥 Subscription payment status (MOST IMPORTANT)
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/backend/webhooks/subscription-update"
+
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
   uri = "/backend/webhooks/app/uninstalled"
