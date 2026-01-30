@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 
@@ -8,12 +8,17 @@ import { useEffect, useState } from "react";
 export async function loader({ request }) {
   const url = new URL(request.url);
 
-  let shop = url.searchParams.get("shop");
+  // 🔧 Fix double /apps issue (Managed Pricing safe fix)
+  if (url.pathname.includes("/apps/smartnest-1/apps/smartnest-1")) {
+    const fixedPath = url.pathname.replace(
+      "/apps/smartnest-1/apps/smartnest-1/app/admin",
+      "/apps/smartnest-1/app/admin"
+    );
 
-  // Shopify iframe fallback
-  // if (!shop) {
-  //   shop = request.headers.get("X-Shopify-Shop-Domain");
-  // }
+    return redirect(`${fixedPath}${url.search}`);
+  }
+
+  let shop = url.searchParams.get("shop");
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   return json({ shop: shop || null, backendUrl });
@@ -105,12 +110,6 @@ export default function Index() {
         }}
       >
         <div>
-          {/* <h1 style={{ fontSize: 24, marginBottom: 8 }}>
-            Login Failed
-          </h1>
-          <p style={{ color: "#666" }}>
-            Please try again.
-          </p> */}
           <h1 style={{ fontSize: 24, marginBottom: 8 }}>
             Please wait...
           </h1>
