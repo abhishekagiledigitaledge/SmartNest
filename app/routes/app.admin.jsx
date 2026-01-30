@@ -4,6 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import adminStyles from "../styles/admin.css?url";
 import { useNavigate } from "@remix-run/react";
+import { authenticate } from "../shopify.server";
 
 export const links = () => [
   {
@@ -25,15 +26,22 @@ export const meta = () => {
 };
 
 export async function loader({ request }) {
-  const url = new URL(request.url);
-  let shop = url.searchParams.get("shop");
+  // 1️⃣  Authenticate and get session
+  const { session } = await authenticate.admin(request);
+  let shop = session?.shop;
 
-  // 2️⃣ Shopify iframe header fallback (MOST IMPORTANT)
+  // 2️⃣ Fallback: URL search params
+  if (!shop) {
+    const url = new URL(request.url);
+    shop = url.searchParams.get("shop");
+  }
+
+  // 3️⃣ Final fallback: Headers
   if (!shop) {
     shop = request.headers.get("X-Shopify-Shop-Domain");
   }
 
-  // 3️⃣ Final safety check
+  // 4️⃣ Final safety check
   if (!shop) {
     console.error("❌ Admin loader: shop missing");
     throw new Response("Shop parameter missing", { status: 400 });

@@ -15,16 +15,17 @@ export async function loader({ request }) {
   //   shop = request.headers.get("X-Shopify-Shop-Domain");
   // }
 
-  return json({ shop: shop || null });
+  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
+  return json({ shop: shop || null, backendUrl });
 }
 
 export default function Index() {
   const navigate = useNavigate();
   const loaderData = useLoaderData();
   const loaderShop = loaderData?.shop;
+  const { backendUrl } = loaderData;
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
 
 
   useEffect(() => {

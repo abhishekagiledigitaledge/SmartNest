@@ -1,4 +1,4 @@
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -21,7 +21,8 @@ import { authenticate } from "../shopify.server";
 =========================== */
 export const loader = async ({ request }) => {
   await authenticate.admin(request);
-  return json({});
+  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
+  return json({ backendUrl });
 };
 
 /* ===========================
@@ -32,7 +33,7 @@ export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
   const SHOP = searchParams.get("shop");
   const navigate = useNavigate();
-  const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
+  const { backendUrl } = useLoaderData();
 
   useEffect(() => {
     if (!SHOP) return;
