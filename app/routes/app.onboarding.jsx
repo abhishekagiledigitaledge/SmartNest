@@ -7,8 +7,10 @@ import {
   Banner,
   InlineStack,
   BlockStack,
+  Spinner,
+  Modal,
 } from "@shopify/polaris";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "@remix-run/react";
 import { InlineGrid } from "@shopify/polaris";
 import { json } from "@remix-run/node";
@@ -29,20 +31,38 @@ export const loader = async ({ request }) => {
 =========================== */
 export default function OnboardingPage() {
   const [widgetEnabled, setWidgetEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const SHOP = searchParams.get("shop");
   const navigate = useNavigate();
   const { backendUrl } = useLoaderData();
 
-  useEffect(() => {
+  const checkWidget = useCallback(() => {
     if (!SHOP) return;
     fetch(`${backendUrl}/api/check-widget?shop=${SHOP}`)
       .then((res) => res.json())
       .then((data) => {
-        setWidgetEnabled(data.installed);
+        if (data.installed) {
+          setWidgetEnabled(true);
+        }
       })
-      .catch(() => setWidgetEnabled(false));
-  }, [SHOP]);
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, [SHOP, backendUrl]);
+
+  // Initial check + poll every 5 seconds until widget is detected
+  useEffect(() => {
+    checkWidget();
+    const interval = setInterval(() => {
+      checkWidget();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [checkWidget]);
+
+  // Stop polling once widget is enabled
+  useEffect(() => {
+    if (widgetEnabled) return;
+  }, [widgetEnabled]);
 
 
   /* ===========================
@@ -68,6 +88,7 @@ export default function OnboardingPage() {
     <Page fullWidth fullHeight>
       <WidgetInstallStep
         enabled={widgetEnabled}
+        loading={loading}
         onOpenEditor={openCollectionEditor}
         onFinish={finishOnboarding}
       />
@@ -78,36 +99,65 @@ export default function OnboardingPage() {
 /* ===========================
    STEP 2 – WIDGET INSTALL
 =========================== */
-function WidgetInstallStep({ enabled, onOpenEditor, onFinish, onBack }) {
+function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, onBack }) {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const toggleModal = useCallback(() => setIsVideoModalOpen((active) => !active), []);
+
   return (
     <Card padding="600">
-      <InlineGrid columns="2fr 3fr" gap="600" alignItems="center" style={{ minHeight: 360 }} >
+      <InlineGrid columns={{ xs: "1fr", md: "1fr 1fr" }} gap="800" alignItems="center" style={{ minHeight: 360 }} >
         {/* ================= LEFT SIDE (VIDEO) ================= */}
-        <div
-          style={{
-            position: "relative",
-            minHeight: 360,
-            paddingBottom: "56.25%",
-            height: 0,
-            overflow: "hidden",
-            borderRadius: 12,
-            background: "#000",
-          }}
-        >
-          <iframe
-            src="https://www.youtube.com/embed/a3ICNMQW7Ok"
-            title="Smart Nest Installation"
+        <BlockStack gap="400">
+          <div
             style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              border: 0,
+              position: "relative",
+              paddingBottom: "56.25%",
+              height: 0,
+              overflow: "hidden",
+              borderRadius: 12,
+              background: "#000",
             }}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
+          >
+            <video
+              src="https://agiledigitaledge.dev/smartnestvideos/video.mp4"
+              title="Smart Nest Installation"
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                border: 0,
+              }}
+            />
+          </div>
+          <InlineStack align="center">
+            <Button onClick={toggleModal} variant="plain">
+              Watch enlarged video
+            </Button>
+          </InlineStack>
+
+          <Modal
+            size="large"
+            open={isVideoModalOpen}
+            onClose={toggleModal}
+            title="Smart Nest Installation Guide"
+          >
+            <Modal.Section>
+              <video
+                src="https://agiledigitaledge.dev/smartnestvideos/video.mp4"
+                title="Smart Nest Installation"
+                autoPlay
+                controls
+                style={{ width: "100%", borderRadius: 8, display: "block" }}
+              />
+            </Modal.Section>
+          </Modal>
+        </BlockStack>
 
         {/* ================= RIGHT SIDE (CONTENT) ================= */}
         <BlockStack gap="400" style={{
@@ -121,21 +171,52 @@ function WidgetInstallStep({ enabled, onOpenEditor, onFinish, onBack }) {
             <Text variant="headingLg">Install Smart Nest Widget</Text>
 
             <Text tone="subdued">
-              Add the Smart Nest widget to your collection page so customers can
-              view child collections.
+              Follow the steps below to add the Smart Nest widget to your
+              collection page. This lets your customers browse child
+              (sub) collections directly on any collection page.
             </Text>
 
-            <BlockStack gap="200">
-              <Text>1. Click on the button below to open a new window.</Text>
+            <BlockStack gap="300">
               <Text>
-                2. Check if the <strong>Widget</strong> block is present.
+                <strong>Step 1:</strong> Click the{" "}
+                <strong>"Open Collection Editor"</strong> button below. This
+                will open your Shopify Theme Editor in a new tab, pre‑set to
+                the <strong>Collection template</strong>.
               </Text>
               <Text>
-                3. Click <strong>Save</strong>, return here and click Continue.
+                <strong>Step 2:</strong> In the Theme Editor left sidebar, click{" "}
+                <strong>"+ Add block"</strong> (or <strong>"Add section"</strong>
+                ) to see the list of available blocks.
+              </Text>
+              <Text>
+                <strong>Step 3:</strong> Search for or scroll to the{" "}
+                <strong>"Sub Collection Support"</strong> app block and click it to add it
+                to the template.
+              </Text>
+              <Text>
+                <strong>Step 4:</strong> Drag the Sub Collection Support block to your
+                preferred position on the collection page (we recommend placing
+                it just below the collection title/banner).
+              </Text>
+              <Text>
+                <strong>Step 5:</strong> Click the <strong>"Save"</strong>{" "}
+                button in the top‑right corner of the Theme Editor.
+              </Text>
+              <Text>
+                <strong>Step 6:</strong> Return to this page — it will
+                automatically detect the widget and show{" "}
+                <strong>"Widget Installed"</strong>. If it doesn't appear
+                within a few seconds, refresh the page. Then click{" "}
+                <strong>"Finish"</strong> to complete the setup.
               </Text>
             </BlockStack>
 
-            {enabled ? (
+            {loading ? (
+              <InlineStack align="start" gap="300" style={{ marginTop: "auto" }}>
+                <Spinner size="small" />
+                <Text tone="subdued">Checking widget status…</Text>
+              </InlineStack>
+            ) : enabled ? (
               <InlineStack align="start" style={{ marginTop: "auto" }}>
                 <Banner status="success">Widget Installed</Banner>
               </InlineStack>
