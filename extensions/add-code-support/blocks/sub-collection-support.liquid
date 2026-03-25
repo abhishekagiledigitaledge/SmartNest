@@ -71,16 +71,14 @@
   }
 </style>
 
-{% unless request.design_mode %}
-  {% if collection.metafields.custom.parent_collections.value %}
-    {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
-    {% if first_parent and first_parent.path %}
-      <script>
-        window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
-      </script>
-    {% endif %}
+{% if collection.metafields.custom.parent_collections.value %}
+  {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
+  {% if first_parent and first_parent.path %}
+    <script>
+      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+    </script>
   {% endif %}
-{% endunless %}
+{% endif %}
 
 {%- comment -%}
   ────────────────────────────────────────
@@ -131,6 +129,7 @@
         alt="{{ effective_title | escape }}"
         width="{{ effective_image.width }}"
         height="{{ effective_image.height }}"
+        loading="lazy"
       >
     </div>
   {% endif %}
