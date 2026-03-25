@@ -71,70 +71,66 @@
   }
 </style>
 
-{% if block.settings.enable_block %}
-  {% if collection.metafields.custom.parent_collections.value %}
-    {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
-    {% if first_parent and first_parent.path %}
-      <script>
-        if (typeof Shopify === 'undefined' || !Shopify.designMode) {
-          window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
-        }
-      </script>
-    {% endif %}
+{% if collection.metafields.custom.parent_collections.value %}
+  {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
+  {% if first_parent and first_parent.path %}
+    <script>
+      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+    </script>
   {% endif %}
-
-  {%- comment -%}
-    ────────────────────────────────────────
-    SUB COLLECTION LOGIC
-    Metafield type:
-    custom.new_sub_collects → List of collection references
-    ────────────────────────────────────────
-  {%- endcomment -%}
-
-  <!-- Sub Collection Support: Logic Start -->
-  {%- assign tag_handle = request.path | split: '/' | last -%}
-  {%- assign sub_json = collection.metafields.custom.new_sub_collects.value -%}
-
-  {%- assign effective_title = collection.title -%}
-  {%- assign effective_description = collection.description -%}
-  {%- assign effective_image = collection.image -%}
-
-  {%- if sub_json -%}
-    {%- for sub in sub_json -%}
-      {%- assign sub_tag_handle = sub.tag | handleize -%}
-      {%- if sub_tag_handle == tag_handle -%}
-        {%- assign child_handle = sub.handle | handleize -%}
-        {%- assign child_collection = collections[child_handle] -%}
-
-        {%- if child_collection -%}
-          {%- assign effective_title = child_collection.title -%}
-          {%- assign effective_description = child_collection.description -%}
-          {%- if child_collection.image != blank -%}
-            {%- assign effective_image = child_collection.image -%}
-          {%- endif -%}
-        {%- endif -%}
-        {%- break -%}
-      {%- endif -%}
-    {%- endfor -%}
-  {%- endif -%}
-  <!-- Sub Collection Support: Logic End -->
-
-  <div class="effective-collection-block">
-    <div class="ecb-content">
-      <h2>{{ effective_title }}</h2>
-      <p>{{ effective_description }}</p>
-    </div>
-
-    {% if effective_image %}
-      <div class="ecb-image">
-        <img
-          src="{{ effective_image | image_url: width: 900 }}"
-          alt="{{ effective_title | escape }}"
-          width="{{ effective_image.width }}"
-          height="{{ effective_image.height }}"
-          loading="lazy"
-        >
-      </div>
-    {% endif %}
-  </div>
 {% endif %}
+
+{%- comment -%}
+  ────────────────────────────────────────
+  SUB COLLECTION LOGIC
+  Metafield type:
+  custom.new_sub_collects → List of collection references
+  ────────────────────────────────────────
+{%- endcomment -%}
+
+<!-- Sub Collection Support: Logic Start -->
+{%- assign tag_handle = request.path | split: '/' | last -%}
+{%- assign sub_json = collection.metafields.custom.new_sub_collects.value -%}
+
+{%- assign effective_title = collection.title -%}
+{%- assign effective_description = collection.description -%}
+{%- assign effective_image = collection.image -%}
+
+{%- if sub_json -%}
+  {%- for sub in sub_json -%}
+    {%- assign sub_tag_handle = sub.tag | handleize -%}
+    {%- if sub_tag_handle == tag_handle -%}
+      {%- assign child_handle = sub.handle | handleize -%}
+      {%- assign child_collection = collections[child_handle] -%}
+
+      {%- if child_collection -%}
+        {%- assign effective_title = child_collection.title -%}
+        {%- assign effective_description = child_collection.description -%}
+        {%- if child_collection.image != blank -%}
+          {%- assign effective_image = child_collection.image -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+<!-- Sub Collection Support: Logic End -->
+
+<div class="effective-collection-block">
+  <div class="ecb-content">
+    <h2>{{ effective_title }}</h2>
+    <p>{{ effective_description }}</p>
+  </div>
+
+  {% if effective_image %}
+    <div class="ecb-image">
+      <img
+        src="{{ effective_image | image_url: width: 900 }}"
+        alt="{{ effective_title | escape }}"
+        width="{{ effective_image.width }}"
+        height="{{ effective_image.height }}"
+        loading="lazy"
+      >
+    </div>
+  {% endif %}
+</div>

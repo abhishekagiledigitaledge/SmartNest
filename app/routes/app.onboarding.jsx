@@ -12,7 +12,7 @@ import {
   Select,
 } from "@shopify/polaris";
 import { useEffect, useState, useCallback, useRef } from "react";
-
+import { useSearchParams } from "@remix-run/react";
 import { InlineGrid } from "@shopify/polaris";
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
@@ -22,14 +22,7 @@ import { authenticate } from "../shopify.server";
    LOADER (REQUIRED)
 =========================== */
 export const loader = async ({ request }) => {
-  const { admin, session } = await authenticate.admin(request);
-
-  // Get shop from session (reliable for both full-page and client-side navigation)
-  let shop = session?.shop;
-  if (!shop) {
-    const url = new URL(request.url);
-    shop = url.searchParams.get("shop");
-  }
+  const { admin } = await authenticate.admin(request);
 
   const response = await admin.graphql(
     `#graphql
@@ -78,7 +71,7 @@ export const loader = async ({ request }) => {
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const apiKey = process.env.SHOPIFY_API_KEY;
-  return json({ backendUrl, themes, apiKey, shop });
+  return json({ backendUrl, themes, apiKey });
 };
 
 /* ===========================
@@ -87,8 +80,10 @@ export const loader = async ({ request }) => {
 export default function OnboardingPage() {
   const [widgetEnabled, setWidgetEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const SHOP = searchParams.get("shop");
   const navigate = useNavigate();
-  const { backendUrl, themes, apiKey, shop: SHOP } = useLoaderData();
+  const { backendUrl, themes, apiKey } = useLoaderData();
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const mainTheme = themes.find((t) => t.role === "MAIN");
@@ -107,6 +102,7 @@ export default function OnboardingPage() {
     fetch(`${backendUrl}/api/check-widget?shop=${SHOP}&theme_id=${selectedTheme}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log(data,'data');
         // Update enabled state based on the specific theme being checked
         setWidgetEnabled(!!data.installed);
       })
