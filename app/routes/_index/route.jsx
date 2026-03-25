@@ -1,16 +1,20 @@
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
+import { authenticate } from "../../shopify.server";
 
 /* ===========================
    ✅ LOADER (SERVER SIDE)
    =========================== */
 export async function loader({ request }) {
   const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
 
-  let shop = url.searchParams.get("shop");
+  if (shop) {
+    return redirect(`/app?${url.searchParams.toString()}`);
+  }
 
-  return json({ shop: shop || null });
+  return json({ shop: null });
 }
 
 /* ===========================
