@@ -9,6 +9,7 @@ import {
   BlockStack,
   Spinner,
   Modal,
+  Select,
 } from "@shopify/polaris";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "@remix-run/react";
@@ -21,9 +22,56 @@ import { authenticate } from "../shopify.server";
    LOADER (REQUIRED)
 =========================== */
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { admin } = await authenticate.admin(request);
+
+  const response = await admin.graphql(
+    `#graphql
+    query getThemes {
+      themes(first: 20) {
+        nodes {
+          id
+          name
+          role
+        }
+      }
+    }`
+  );
+
+  const responseJson = await response.json();
+  const themesRaw = responseJson.data.themes.nodes.map((theme) => ({
+    ...theme,
+    id: theme.id.split("/").pop(),
+  }));
+
+  // Parallel check for App Block support (Online Store 2.0)
+  // We check for the existence of templates/collection.json
+  const themes = await Promise.all(
+    themesRaw.map(async (theme) => {
+      try {
+        const assetRes = await admin.rest.get({
+          path: `themes/${theme.id}/assets`,
+        });
+        const assetData = await assetRes.json();
+        const assets = assetData.assets || [];
+
+        // OS 2.0 themes have JSON templates in the templates/ directory
+        const supportsAppBlocks = assets.some(
+          (a) => a.key.startsWith("templates/") && a.key.endsWith(".json")
+        );
+
+        return { ...theme, supportsAppBlocks };
+      } catch (e) {
+        console.error(`Error checking assets for theme ${theme.id}:`, e);
+        // Fallback to true if we can't check, to avoid false negatives
+        // or keep it false but allow override if widget is detected
+        return { ...theme, supportsAppBlocks: true };
+      }
+    })
+  );
+
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
-  return json({ backendUrl });
+  const apiKey = process.env.SHOPIFY_API_KEY;
+  return json({ backendUrl, themes, apiKey });
 };
 
 /* ===========================
@@ -35,29 +83,42 @@ export default function OnboardingPage() {
   const [searchParams] = useSearchParams();
   const SHOP = searchParams.get("shop");
   const navigate = useNavigate();
-  const { backendUrl } = useLoaderData();
+  const { backendUrl, themes, apiKey } = useLoaderData();
+
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    const mainTheme = themes.find((t) => t.role === "MAIN");
+    return mainTheme ? String(mainTheme.id) : (themes[0] ? String(themes[0].id) : "current");
+  });
+
+  const themeOptions = themes.map((theme) => ({
+    label: theme.name + (theme.role === "MAIN" ? " (Live)" : ""),
+    value: String(theme.id),
+  }));
+
+  const isCompatible = themes.find((t) => String(t.id) === selectedTheme)?.supportsAppBlocks;
 
   const checkWidget = useCallback(() => {
-    if (!SHOP) return;
-    fetch(`${backendUrl}/api/check-widget?shop=${SHOP}`)
+    if (!SHOP || !selectedTheme) return;
+    fetch(`${backendUrl}/api/check-widget?shop=${SHOP}&theme_id=${selectedTheme}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.installed) {
-          setWidgetEnabled(true);
-        }
+        // Update enabled state based on the specific theme being checked
+        setWidgetEnabled(!!data.installed);
       })
       .catch(() => { })
       .finally(() => setLoading(false));
-  }, [SHOP, backendUrl]);
+  }, [SHOP, backendUrl, selectedTheme]);
 
   // Initial check + poll every 5 seconds until widget is detected
   useEffect(() => {
+    setWidgetEnabled(false); // Reset when theme changes
+    setLoading(true);
     checkWidget();
     const interval = setInterval(() => {
       checkWidget();
     }, 5000);
     return () => clearInterval(interval);
-  }, [checkWidget]);
+  }, [checkWidget, selectedTheme]);
 
   // Stop polling once widget is enabled
   useEffect(() => {
@@ -69,10 +130,12 @@ export default function OnboardingPage() {
      THEME EDITOR LINKS
   =========================== */
   const openCollectionEditor = () => {
+    // Deep link to automatically add the app block
     const url =
-      `https://${SHOP}/admin/themes/current/editor` +
-      `?context=collections` +
-      `&template=collection`;
+      `https://${SHOP}/admin/themes/${selectedTheme}/editor` +
+      `?template=collection` +
+      `&addAppBlockId=${apiKey}/sub-collection-support` +
+      `&target=newAppsSection`;
 
     window.open(url, "_blank");
   };
@@ -91,6 +154,10 @@ export default function OnboardingPage() {
         loading={loading}
         onOpenEditor={openCollectionEditor}
         onFinish={finishOnboarding}
+        themeOptions={themeOptions}
+        selectedTheme={selectedTheme}
+        onThemeChange={setSelectedTheme}
+        isCompatible={isCompatible}
       />
     </Page>
   );
@@ -99,7 +166,7 @@ export default function OnboardingPage() {
 /* ===========================
    STEP 2 – WIDGET INSTALL
 =========================== */
-function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, onBack }) {
+function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, themeOptions, selectedTheme, onThemeChange, isCompatible }) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const toggleModal = useCallback(() => setIsVideoModalOpen((active) => !active), []);
 
@@ -176,34 +243,48 @@ function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, onBack })
               (sub) collections directly on any collection page.
             </Text>
 
+            <div style={{ maxWidth: "300px" }}>
+              <Select
+                label="Select theme"
+                options={themeOptions}
+                value={selectedTheme}
+                onChange={onThemeChange}
+              />
+            </div>
+
+            {!isCompatible && !enabled && (
+              <Banner tone="critical" title="Vintage Theme Detected">
+                <p>
+                  This is a vintage theme that does not support app blocks. 
+                  Unfortunately, we cannot add Smart Nest to this theme. 
+                  Please select an Online Store 2.0 compatible theme to proceed.
+                </p>
+              </Banner>
+            )}
+
             <BlockStack gap="300">
               <Text>
                 <strong>Step 1:</strong> Click the{" "}
                 <strong>"Open Collection Editor"</strong> button below. This
-                will open your Shopify Theme Editor in a new tab, pre‑set to
-                the <strong>Collection template</strong>.
+                will open the Shopify Theme Editor and automatically prompt you to add the
+                <strong>"Sub Collection Support"</strong> block.
               </Text>
               <Text>
-                <strong>Step 2:</strong> In the Theme Editor left sidebar, click{" "}
-                <strong>"+ Add block"</strong> (or <strong>"Add section"</strong>
-                ) to see the list of available blocks.
-              </Text>
-              <Text>
-                <strong>Step 3:</strong> Search for or scroll to the{" "}
-                <strong>"Sub Collection Support"</strong> app block and click it to add it
-                to the template.
-              </Text>
-              <Text>
-                <strong>Step 4:</strong> Drag the Sub Collection Support block to your
+                <strong>Step 2:</strong> In the Theme Editor, drag the Sub Collection Support block to your
                 preferred position on the collection page (we recommend placing
                 it just below the collection title/banner).
               </Text>
               <Text>
-                <strong>Step 5:</strong> Click the <strong>"Save"</strong>{" "}
+                <strong>Step 3 (Configuration):</strong> Click on the added <strong>"Sub Collection Support"</strong> 
+                block in the sidebar. In the settings panel, ensure the <strong>"Enable Sub Collection Block"</strong> 
+                checkbox is checked.
+              </Text>
+              <Text>
+                <strong>Step 4:</strong> Click the <strong>"Save"</strong>{" "}
                 button in the top‑right corner of the Theme Editor.
               </Text>
               <Text>
-                <strong>Step 6:</strong> Return to this page — it will
+                <strong>Step 5:</strong> Return to this page — it will
                 automatically detect the widget and show{" "}
                 <strong>"Widget Installed"</strong>. If it doesn't appear
                 within a few seconds, refresh the page. Then click{" "}
@@ -220,10 +301,16 @@ function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, onBack })
               <InlineStack align="start" style={{ marginTop: "auto" }}>
                 <Banner status="success">Widget Installed</Banner>
               </InlineStack>
-            ) : (
+            ) : isCompatible || enabled ? (
               <InlineStack align="start" style={{ marginTop: "auto" }}>
                 <Button primary onClick={onOpenEditor}>
                   Open Collection Editor
+                </Button>
+              </InlineStack>
+            ) : (
+              <InlineStack align="start" style={{ marginTop: "auto" }}>
+                <Button disabled>
+                  Incompatible Theme
                 </Button>
               </InlineStack>
             )}
