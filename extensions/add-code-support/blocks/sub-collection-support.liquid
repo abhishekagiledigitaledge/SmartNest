@@ -75,7 +75,9 @@
   {% assign first_parent = collection.metafields.custom.parent_collections.value.first %}
   {% if first_parent and first_parent.path %}
     <script>
-      window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+      if (typeof Shopify === 'undefined' || !Shopify.designMode) {
+        window.location.href = "https://{{ request.host }}{{ first_parent.path | replace: '\/', '/' }}";
+      }
     </script>
   {% endif %}
 {% endif %}
