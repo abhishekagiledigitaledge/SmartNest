@@ -1,7 +1,6 @@
 import { json, redirect } from "@remix-run/node";
 import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { authenticate } from "../../shopify.server";
 
 /* ===========================
    ✅ LOADER (SERVER SIDE)
@@ -11,6 +10,7 @@ export async function loader({ request }) {
   const shop = url.searchParams.get("shop");
 
   if (shop) {
+    // Standard Shopify setup: redirect root to /app
     return redirect(`/app?${url.searchParams.toString()}`);
   }
 
@@ -67,7 +67,7 @@ export default function Index() {
 
   useEffect(() => {
     if (isAuthorized) {
-      navigate(`/app/onboarding?shop=${loaderShop}`, { replace: true });
+      navigate(`/app?shop=${loaderShop}`, { replace: true });
     }
   }, [isAuthorized]);
 
