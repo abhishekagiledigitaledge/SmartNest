@@ -12,7 +12,6 @@ import {
   Select,
 } from "@shopify/polaris";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useSearchParams } from "@remix-run/react";
 import { InlineGrid } from "@shopify/polaris";
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
@@ -22,7 +21,8 @@ import { authenticate } from "../shopify.server";
    LOADER (REQUIRED)
 =========================== */
 export const loader = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+  const shop = session?.shop;
 
   const response = await admin.graphql(
     `#graphql
@@ -71,7 +71,7 @@ export const loader = async ({ request }) => {
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   const apiKey = process.env.SHOPIFY_API_KEY;
-  return json({ backendUrl, themes, apiKey });
+  return json({ backendUrl, themes, apiKey, shop });
 };
 
 /* ===========================
@@ -80,10 +80,8 @@ export const loader = async ({ request }) => {
 export default function OnboardingPage() {
   const [widgetEnabled, setWidgetEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [searchParams] = useSearchParams();
-  const SHOP = searchParams.get("shop");
   const navigate = useNavigate();
-  const { backendUrl, themes, apiKey } = useLoaderData();
+  const { backendUrl, themes, apiKey, shop: SHOP } = useLoaderData();
 
   const [selectedTheme, setSelectedTheme] = useState(() => {
     const mainTheme = themes.find((t) => t.role === "MAIN");

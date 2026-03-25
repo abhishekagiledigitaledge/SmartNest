@@ -1,14 +1,14 @@
 import { json } from "@remix-run/node";
 import { useNavigate, useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
+import { authenticate } from "../shopify.server";
 
 /* ===========================
    ✅ LOADER (SERVER SIDE)
    =========================== */
 export async function loader({ request }) {
-  const url = new URL(request.url);
-
-  let shop = url.searchParams.get("shop");
+  const { session } = await authenticate.admin(request);
+  const shop = session?.shop;
 
   const backendUrl = process.env.BACKEND_URL || "https://subcollection.allgovjobs.com/backend";
   return json({ shop: shop || null, backendUrl });
