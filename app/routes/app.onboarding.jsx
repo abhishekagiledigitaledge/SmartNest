@@ -11,7 +11,7 @@ import {
   Modal,
   Select,
 } from "@shopify/polaris";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { InlineGrid } from "@shopify/polaris";
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
@@ -162,6 +162,39 @@ export default function OnboardingPage() {
   );
 }
 
+const LOOM_EMBED_SRC =
+  "https://www.loom.com/embed/ea254fe6c5654ea38da4c969dbe97b69";
+
+/** Responsive 16:9-style Loom embed (padding-bottom trick). */
+function LoomEmbed({ borderRadius = 0 }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        paddingBottom: "56.25%",
+        height: 0,
+        overflow: "hidden",
+        borderRadius,
+        background: "#000",
+      }}
+    >
+      <iframe
+        src={LOOM_EMBED_SRC}
+        title="Smart Nest Installation"
+        allowFullScreen
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          border: 0,
+        }}
+      />
+    </div>
+  );
+}
+
 /* ===========================
    STEP 2 – WIDGET INSTALL
 =========================== */
@@ -172,35 +205,9 @@ function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, themeOpti
   return (
     <Card padding="600">
       <InlineGrid columns={{ xs: "1fr", md: "1fr 1fr" }} gap="800" alignItems="center" style={{ minHeight: 360 }} >
-        {/* ================= LEFT SIDE (VIDEO) ================= */}
+        {/* ================= LEFT SIDE (LOOM) ================= */}
         <BlockStack gap="400">
-          <div
-            style={{
-              position: "relative",
-              paddingBottom: "56.25%",
-              height: 0,
-              overflow: "hidden",
-              borderRadius: 12,
-              background: "#000",
-            }}
-          >
-            <video
-              src="https://agiledigitaledge.dev/smartnestvideos/video.mp4"
-              title="Smart Nest Installation"
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                border: 0,
-              }}
-            />
-          </div>
+          <LoomEmbed borderRadius={12} />
           <InlineStack align="center">
             <Button onClick={toggleModal} variant="plain">
               Watch enlarged video
@@ -214,13 +221,7 @@ function WidgetInstallStep({ enabled, loading, onOpenEditor, onFinish, themeOpti
             title="Smart Nest Installation Guide"
           >
             <Modal.Section>
-              <video
-                src="https://agiledigitaledge.dev/smartnestvideos/video.mp4"
-                title="Smart Nest Installation"
-                autoPlay
-                controls
-                style={{ width: "100%", borderRadius: 8, display: "block" }}
-              />
+              <LoomEmbed borderRadius={8} />
             </Modal.Section>
           </Modal>
         </BlockStack>
