@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import { useNavigate, useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { authenticate } from "../shopify.server";
 
@@ -15,7 +15,6 @@ export async function loader({ request }) {
 }
 
 export default function Index() {
-  const navigate = useNavigate();
   const loaderData = useLoaderData();
   const loaderShop = loaderData?.shop;
   const { backendUrl } = loaderData;
@@ -56,12 +55,15 @@ export default function Index() {
 
   }, []);
 
-  // Separate effect: redirect ONLY when fully authorized
+  // Full page navigation preserves `host` and other embedded-app query params.
+  // Client-side navigate() triggers loader fetches that can return 401 right after install.
   useEffect(() => {
-    if (isAuthorized) {
-      navigate(`/app/onboarding?shop=${loaderShop}`, { replace: true });
-    }
-  }, [isAuthorized]);
+    if (!isAuthorized || !loaderShop) return;
+    const next = new URL(window.location.href);
+    next.pathname = "/app/onboarding";
+    next.searchParams.set("shop", loaderShop);
+    window.location.replace(next.toString());
+  }, [isAuthorized, loaderShop]);
 
   if (isCheckingAuth) {
     return (
